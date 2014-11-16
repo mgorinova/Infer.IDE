@@ -9,21 +9,26 @@ namespace Backend
     {
         static void Main(string[] args)
         {
-            Node[] n = { new Node("0"), new Node("1"), new Node("2") };
-            Link[] l = { new Link("0", "0", "1"), new Link("1", "0", "2") };
 
-            var g = new DirectedGraph(n, l);
+            String dest = "TwoCoins.dgml";
+            //String dest = "Sprinkler-Mine.dgml";
+            //String dest = "TwoCoins-obs.dgml";
+            //String dest = "Sprinkler.dgml";
 
-            Deserializer.WriteGraph(g);          
 
-            DirectedGraph graphNew = Deserializer.ReadGraph();
+            DirectedGraph graphNew = Deserializer.ReadGraph(dest);
 
-            Utils.ClassifyNodes(graphNew);
+            ModelGraph model = Utils.GetModel(graphNew);
 
-            foreach (Node nd in graphNew.Nodes)
-                Console.WriteLine(nd.Label + ", " + nd.Type);
+            foreach (ModelVertex v in model.Vertices)
+            {
+                Console.WriteLine("Vertex: " + v.Label);
+            }
 
-            System.Threading.Thread.Sleep(20000);
+            foreach (ModelEdge e in model.Edges)
+            {
+                Console.WriteLine("Edge {0} -> {1}", e.Source.Label, e.Target.Label);
+            }
             
         }
     }

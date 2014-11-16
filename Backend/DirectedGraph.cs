@@ -10,7 +10,9 @@ namespace Backend
     {
         Variable = 0,
         Distribution = 1,
-        Other = 2
+        ObservedVariable = 2,
+        Factor = 3,
+        Other = 4
     }
 
     [Serializable]
