@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace Backend
 {
-    static class Utils
+    public static class Utils
     {
-
+        #region Classify
         static public NodeType ClassifyNode(Node n)
         {
             NodeType type;
@@ -47,6 +46,7 @@ namespace Backend
 
             return type;
         }
+        #endregion
 
         private static void filter(System.Collections.Generic.IEnumerable<ModelVertex> enumerable, ModelGraph m)
         { 
@@ -60,7 +60,8 @@ namespace Backend
         }
         
 
-        public static ModelGraph GetModel(DirectedGraph graph)
+        #region Transform a Factor Graph to a Graphical Model
+        public static ModelGraph FactorToModel(DirectedGraph graph)
         {
             var g = new ModelGraph(graph);
             var m = new ModelGraph();
@@ -93,7 +94,26 @@ namespace Backend
 
             return m;
         }
+        #endregion
 
+        public static ModelGraph getModel(string dest)
+        {
+            DirectedGraph graphNew = Deserializer.ReadGraph(dest);
+
+            ModelGraph model = Utils.FactorToModel(graphNew);
+
+            foreach (ModelVertex v in model.Vertices)
+            {
+                Console.WriteLine("Vertex: " + v.Label);
+            }
+
+            foreach (ModelEdge e in model.Edges)
+            {
+                Console.WriteLine("Edge {0} -> {1}", e.Source.Label, e.Target.Label);
+            }
+
+            return model;
+        }
 
     }
 }

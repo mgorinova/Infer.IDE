@@ -23,9 +23,14 @@ namespace Infer.IDE
     /// </summary>
     public partial class MainWindow : Window
     {
+        private ViewModel vm;
+        private int cnt = 0;
+        private string [] paths = {"TwoCoins.dgml", "Sprinkler-Mine.dgml", "Sprinkler.dgml"};
 
         public MainWindow()
         {
+            vm = new ViewModel();
+            this.DataContext = vm;
             InitializeComponent();
         }
 
@@ -36,6 +41,12 @@ namespace Infer.IDE
 
         private void Compile_Click(object sender, RoutedEventArgs e)
         {
+            Console.WriteLine(paths[0]);
+            vm.ReLayoutGraph(paths[cnt++]);
+            if (cnt == 3) cnt = 0;
+
+            #region F# Stuff
+            /*
             System.Text.StringBuilder sbOut = new System.Text.StringBuilder();
             System.Text.StringBuilder sbErr = new System.Text.StringBuilder();
 
@@ -57,15 +68,15 @@ namespace Infer.IDE
                 {
                     FSharpOption<Shell.FsiValue> val = fsiSession.EvalExpression(line.Substring(1));
 
-                    if (FSharpOption<Shell.FsiValue>.get_IsSome(val))
-                        ReadBox.Text = ((val.Value).ReflectionValue).ToString();
+                    //if (FSharpOption<Shell.FsiValue>.get_IsSome(val))
+                        //ReadBox.Text = ((val.Value).ReflectionValue).ToString();
                 }
                 else 
                 {
                     fsiSession.EvalInteraction(line);
                 }
 
-            }
+            }*/
             /*
 
             string text = "let a = 5";
@@ -82,6 +93,7 @@ namespace Infer.IDE
 
             if (FSharpOption<Shell.FsiValue>.get_IsSome(val))
                 ReadBox.Text = ((val.Value).ReflectionValue).ToString();*/
+            #endregion
         }
 
         private void TextBox_TextChanged_1(object sender, TextChangedEventArgs e)

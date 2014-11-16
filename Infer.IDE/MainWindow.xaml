@@ -1,6 +1,9 @@
 ﻿<Window x:Class="Infer.IDE.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
+        xmlns:local="clr-namespace:Infer.IDE"
+        xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"        
         Title="MainWindow" Height="500" Width="900">
     <Grid Margin="2,2,2,2">
         <Grid.RowDefinitions>
@@ -17,17 +20,19 @@
             <TextBox x:Name="WriteBox" Grid.Column="0" TextChanged="TextBox_TextChanged" AcceptsReturn="True" AcceptsTab="True">
                 
             </TextBox>
-            
-            <TextBox x:Name="ReadBox" Grid.Column="1" IsReadOnly="True">
-                
-            </TextBox>
-            
+
+            <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
+                <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
+                    Graph="{Binding Graph}"
+                    LayoutAlgorithmType="EfficientSugiyama"
+                    HighlightAlgorithmType="Simple" />
+            <!--</zoom:ZoomControl> -->
+
         </Grid>
         
         <Button x:Name="Compile" Grid.Row="1" Width="150" HorizontalAlignment="Left" Margin="100, 0, 0, 0" Click="Compile_Click" Content="Compile">
             
-        </Button>
-
+        </Button>  
 
     </Grid>
 </Window>

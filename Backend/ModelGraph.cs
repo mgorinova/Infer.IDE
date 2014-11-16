@@ -8,7 +8,8 @@ using QuickGraph;
 namespace Backend
 {
 
-    class ModelVertex
+    #region ModelVertex
+    public class ModelVertex
     {
         public int ID;
         public string Label; 
@@ -20,9 +21,16 @@ namespace Backend
             Label = l;
             Type = t;
         }
-    }
 
-    class ModelEdge : Edge<ModelVertex>//, INotifyPropertyChanged
+        public override string ToString()
+        {
+            return string.Format("{0}", Label);
+        }
+    }
+    #endregion
+
+    #region ModelEdge
+    public class ModelEdge : Edge<ModelVertex>//, INotifyPropertyChanged
     {
 
         public ModelEdge(ModelVertex s, ModelVertex t)
@@ -30,8 +38,9 @@ namespace Backend
         { 
         }
     }
+    #endregion
 
-    class ModelGraph : BidirectionalGraph<ModelVertex, ModelEdge>
+    public class ModelGraph : BidirectionalGraph<ModelVertex, ModelEdge>
     {
         public ModelGraph(DirectedGraph g)
             : base()
@@ -57,9 +66,15 @@ namespace Backend
            
         }
 
-        public ModelGraph()
-        { 
-        }
+        #region Other Constructors
+        public ModelGraph() { }
+
+        public ModelGraph(bool allowParallelEdges)
+            : base(allowParallelEdges) { }
+
+        public ModelGraph(bool allowParallelEdges, int vertexCapacity)
+            : base(allowParallelEdges, vertexCapacity) { }
+        #endregion
 
         private int ParseID(string s) { return int.Parse((s).Remove(0, 4)); }
 
@@ -80,4 +95,5 @@ namespace Backend
         }
         
     }
+        
 }

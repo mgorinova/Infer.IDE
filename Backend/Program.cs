@@ -15,21 +15,11 @@ namespace Backend
             //String dest = "TwoCoins-obs.dgml";
             //String dest = "Sprinkler.dgml";
 
+            var tmp = Utils.getModel(dest);
 
-            DirectedGraph graphNew = Deserializer.ReadGraph(dest);
-
-            ModelGraph model = Utils.GetModel(graphNew);
-
-            foreach (ModelVertex v in model.Vertices)
-            {
-                Console.WriteLine("Vertex: " + v.Label);
-            }
-
-            foreach (ModelEdge e in model.Edges)
-            {
-                Console.WriteLine("Edge {0} -> {1}", e.Source.Label, e.Target.Label);
-            }
             
         }
+
+
     }
 }
