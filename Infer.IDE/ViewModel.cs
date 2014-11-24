@@ -32,6 +32,8 @@ namespace Infer.IDE
         {
             Graph = Backend.Utils.getModel(path);
             NotifyPropertyChanged("Graph");
+            // FIXME (if you can...) Program crashes when you put mouse 
+            // over graph's visualisation during a refresh.
         }
 
 

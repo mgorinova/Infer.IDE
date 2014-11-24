@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infer.IDE", "Infer.IDE\Infe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\Backend.csproj", "{9959F912-18D8-448B-8452-9916E34B24B6}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CodeAnalysis", "CodeAnalysis\CodeAnalysis.fsproj", "{92A27946-8CC9-4146-9D12-A1EA4DF5C8EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9959F912-18D8-448B-8452-9916E34B24B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9959F912-18D8-448B-8452-9916E34B24B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9959F912-18D8-448B-8452-9916E34B24B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92A27946-8CC9-4146-9D12-A1EA4DF5C8EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92A27946-8CC9-4146-9D12-A1EA4DF5C8EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92A27946-8CC9-4146-9D12-A1EA4DF5C8EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92A27946-8CC9-4146-9D12-A1EA4DF5C8EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
