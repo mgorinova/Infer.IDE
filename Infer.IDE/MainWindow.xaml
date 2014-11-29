@@ -4,50 +4,76 @@
         xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
         xmlns:local="clr-namespace:Infer.IDE"
         xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"        
-        Title="MainWindow" Height="500" Width="900">
+        Title="MainWindow" Height="500" Width="1000">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <local:FadeIn x:Key="fastFadeInTransition" />
+            <local:FadeOut x:Key="fastFadeOutTransition" />
+        </ResourceDictionary>
+    </Window.Resources>
+
     <Grid Margin="2,2,2,2">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="35"/>
-            <RowDefinition Height="70"/>
-        </Grid.RowDefinitions>
-        
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="400" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+
+
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="70"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="400" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="WriteBox" Grid.Column="0" TextChanged="TextBox_TextChanged" AcceptsReturn="True">
+
+                </TextBox>
+
+                <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
+                <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
+                        Graph="{Binding Graph}"
+                        LayoutAlgorithmType="EfficientSugiyama"
+                        HighlightAlgorithmType="Simple" 
+                        CreationTransition="{x:Null}"
+                        DestructionTransition="{DynamicResource fastFadeOutTransition}"
+                        IsAnimationEnabled="True" AnimationLength="0:0:0.1"                     
+                        AsyncCompute="True"
+                        IsEnabled="{Binding GraphEnabled}"
+                                            />
             
-            <TextBox x:Name="WriteBox" Grid.Column="0" TextChanged="TextBox_TextChanged" AcceptsReturn="True">
-                
+                <!--AsyncCompute makes relayout faster and less buggy-->
+
+                <!--</zoom:ZoomControl> -->   
+
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="400"/>
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Button x:Name="Compile" Grid.Column="0" Width="150" HorizontalAlignment="Center" Click="Compile_Click" Content="Compile"/>
+                <Button x:Name="Refresh" Grid.Column="1" Width="150" HorizontalAlignment="Center" Click="Refresh_Click" Content="Refresh"/>
+            </Grid>
+
+            <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True">
+
             </TextBox>
 
-            <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
-                <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
-                    Graph="{Binding Graph}"
-                    LayoutAlgorithmType="EfficientSugiyama"
-                    HighlightAlgorithmType="Simple" />
-            <!--</zoom:ZoomControl> -->
-
         </Grid>
-        
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="400"/>
-                <ColumnDefinition Width="*" />
 
-            </Grid.ColumnDefinitions>
-
-            <Button x:Name="Compile" Grid.Column="0" Width="150" HorizontalAlignment="Center" Click="Compile_Click" Content="Compile"/>
-            <Button x:Name="Refresh" Grid.Column="1" Width="150" HorizontalAlignment="Center" Click="Refresh_Click" Content="Refresh"/>
-
-
-        </Grid>
-        
-        <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True">
-            
-        </TextBox>
-        
+        <ScrollViewer Grid.Column="1" Grid.Row="0">
+            <StackPanel x:Name="Charts"/>
+        </ScrollViewer>
 
     </Grid>
 </Window>

@@ -3,33 +3,55 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
+using System.Windows.Forms.Integration;
 using QuickGraph;
+using System.Windows.Controls;
 
 namespace Backend
 {
-
-    #region ModelVertex
+        
     public class ModelVertex
     {
-        public int ID;
-        public string Label; 
-        public NodeType Type;
+        private int id;
+        private string label; 
+        private NodeType type;
+
+        private string distribution;
+
+        private WindowsFormsHost winHost;
 
         public ModelVertex(int i, string l, NodeType t)
         {
-            ID = i;
-            Label = l;
-            Type = t;
+            id = i;
+            label = l;
+            type = t;
+        }
+
+        public ModelVertex(int i, string l, NodeType t, StackPanel hostsParent)
+        {
+            id = i;
+            label = l;
+            type = t;
+
+            winHost = new WindowsFormsHost();
+            winHost.Height = 150.0;
+            hostsParent.Children.Add(winHost);
         }
 
         public override string ToString()
         {
             return string.Format("{0}", Label);
         }
-    }
-    #endregion
 
-    #region ModelEdge
+        public int Id { get{ return id; } }
+        public string Label { get { return label; } }
+        public NodeType Type { get { return type; } }
+        public WindowsFormsHost WinHost { get { return winHost; } }
+        public string Distribution { get { return distribution; } set { distribution = value; } }
+    }
+    
+
+    
     public class ModelEdge : Edge<ModelVertex>//, INotifyPropertyChanged
     {
 
@@ -38,10 +60,11 @@ namespace Backend
         { 
         }
     }
-    #endregion
+    
 
     public class ModelGraph : BidirectionalGraph<ModelVertex, ModelEdge>
-    {
+    {         
+
         public ModelGraph(DirectedGraph g)
             : base()
         {
@@ -61,7 +84,7 @@ namespace Backend
                 // binary search here, instead of naive one. Should provide better
                 // performance for large graphs.
 
-                this.AddEdge(new ModelEdge(findVertex(id_source), findVertex(id_target)));              
+                this.AddEdge(new ModelEdge(FindVertex(id_source), FindVertex(id_target)));              
             }
            
         }
@@ -78,22 +101,39 @@ namespace Backend
 
         private int ParseID(string s) { return int.Parse((s).Remove(0, 4)); }
 
-        private ModelVertex findVertex(int id)
+        private ModelVertex FindVertex(int id)
         {
             foreach (ModelVertex v in this.Vertices)
             {
-                if (v.ID == id) return v;
+                if (v.Id == id) return v;
             }
 
-            //FIXME: put an exception here
-
-            System.IO.TextWriter tw = Console.Error;
-            tw.WriteLine("Something went wrong... Node " + id + " doesn't exist in the graph." );
-            tw.Close();
-
-            return null;
+            throw new Exception("Node " + id + " doesn't exist in the graph.");
         }
-        
+
+        public ModelVertex FindVertexByName(string name)
+        {
+            foreach (ModelVertex v in this.Vertices)
+            {
+                if (v.Label == name) return v;
+            }
+
+            throw new Exception("Node with name " + name + " doesn't exist in the graph.");
+        }
+
+
+        public void Union(ModelGraph g)
+        {
+            foreach (ModelVertex v in g.Vertices)
+            {
+                this.AddVertex(v);
+            }
+
+            foreach (ModelEdge e in g.Edges)
+            {
+                this.AddEdge(e);
+            }
+        }
     }
         
 }

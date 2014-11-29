@@ -11,10 +11,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
+using System.Windows.Forms.Integration;
+
 using System.IO;
 
 using Microsoft.FSharp.Compiler.Interactive;
 using Microsoft.FSharp.Core;
+using Microsoft.FSharp.Collections;
+
 
 namespace Infer.IDE
 {
@@ -23,33 +28,19 @@ namespace Infer.IDE
     /// </summary>
     public partial class MainWindow : Window
     {
-        private ViewModel vm;
+        private ViewModel viewModel;
         private int cnt = 0;
         private string [] paths = {"TwoCoins.dgml", "Sprinkler-Mine.dgml", "Sprinkler.dgml"};
         private string path = System.IO.Directory.GetCurrentDirectory() + "\\tmp.fsx";
         private Shell.FsiEvaluationSession fsiSession;
-        private string[] assemblies = { 
-                                          "#r \"infer\\Infer.Compiler.dll\"", 
-                                          "#r \"infer\\Infer.Runtime.dll\"", 
-                                          "#r \"infer\\Infer.FSharp.dll\"" };
-
-        private string allAssemblies = "#r \"infer\\Infer.Compiler.dll\"" + Environment.NewLine +
-                                        "#r \"infer\\Infer.Runtime.dll\"" + Environment.NewLine +
-                                        "#r \"infer\\Infer.FSharp.dll\"" + Environment.NewLine +
-                                        "open MicrosoftResearch.Infer" + Environment.NewLine +
-                                        "open MicrosoftResearch.Infer.Models" + Environment.NewLine +
-                                        "open MicrosoftResearch.Infer.Distributions" + Environment.NewLine +
-                                        "open MicrosoftResearch.Infer.Factors" + Environment.NewLine +
-                                        "open MicrosoftResearch.Infer.FSharp" + Environment.NewLine +
-                                        "open MicrosoftResearch.Infer.Maths" + Environment.NewLine;
 
         private StringReader inStream;
         private StringWriter outStream;
         private StringWriter errStream;
         public MainWindow()
         {
-            vm = new ViewModel();
-            this.DataContext = vm;
+            viewModel = new ViewModel();
+            this.DataContext = viewModel;
 
             System.Text.StringBuilder sbOut = new System.Text.StringBuilder();
             System.Text.StringBuilder sbErr = new System.Text.StringBuilder();
@@ -63,16 +54,13 @@ namespace Infer.IDE
             Shell.FsiEvaluationSessionHostConfig fsiConfig = Shell.FsiEvaluationSession.GetDefaultConfiguration();
             fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.None);
 
-            foreach(string a in assemblies)
+            foreach(string a in CompilerStrings.assemblies)
                 fsiSession.EvalInteraction(a);
 
-            fsiSession.EvalInteraction("open MicrosoftResearch.Infer");
-            fsiSession.EvalInteraction("open MicrosoftResearch.Infer.Models");
-            fsiSession.EvalInteraction("open MicrosoftResearch.Infer.Distributions");
-            fsiSession.EvalInteraction("open MicrosoftResearch.Infer.Factors");
-            fsiSession.EvalInteraction("open MicrosoftResearch.Infer.FSharp");
-            fsiSession.EvalInteraction("open MicrosoftResearch.Infer.Maths");
             InitializeComponent();
+
+            WriteBox.Text = CompilerStrings.sprinkler;
+
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -81,9 +69,9 @@ namespace Infer.IDE
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e)
-        {
+        {            
             Console.WriteLine(paths[0]);
-            vm.ReLayoutGraph(paths[cnt++]);
+            //viewModel.ReLayoutGraph(paths[cnt++]);
             if (cnt == 3) cnt = 0;
         }
 
@@ -93,58 +81,106 @@ namespace Infer.IDE
 
             // FIXME: feedback + exception handling
 
+            // FIXME: for now we assume Infer.NET var names = compiled var names 
+
             // TODO: implement text highlighting, etc
 
-            var current = allAssemblies + WriteBox.Text;
+            var current = CompilerStrings.allAssemblies+ WriteBox.Text;
 
-            File.WriteAllText("tmp.fsx", current);
+            File.WriteAllText("tmp.fsx", current);   
 
-            #region Check and Modify F# Code
-            // Should happen in one go, but I might need different outputs:
-            // - for when there are compile errors - lines with errors, so I don't try to compile (we don't want terrible crashes, do we?) 
-            // - for when there are no compile errors - list of Infer.NET variables declared in the code            
-
-            var activeVars = Checker.check(path, current);
-
-            foreach (string v in activeVars)
+            Console.Write("checking code...");
+            FSharpList<string> activeVars = null;
+            try
             {
-                Console.WriteLine("{0} is an active var", v);
+                /*
+                 * F# code checking:
+                 * Get a list of Infer.NET variables.
+                 * If the code fails to check - an exception is thrown
+                 */
+                activeVars = Checker.check(path, current);
+                Console.WriteLine(" OK \n");
+
+                foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
+
+                /*  
+                 *  F# code evaluation:
+                 */
+                Console.Write("script evaluation...");
+                fsiSession.EvalScript("tmp.fsx");
+                Console.WriteLine(" OK \n");
+
+                // FIXME: Maybe extract the text of the last namespace
+                // defined, to show in the "Read Box" of the IDE.
+
+                //string output = outStream.ToString();
+                //Console.WriteLine(output);     
+
+                /* 
+                 * Injection: 
+                 * Infer each variable that is in the active variables list
+                 * TODO: add a DGML request injection when Infer.NET 2.6 is available.
+                 * Move that to ModelGraph constructor. Be careful when 
+                 * there are more than one dgml files in that case.
+                 */
+
+                fsiSession.EvalInteraction("open Tmp");         // open module (that might be unsafe...?) -- should be fine,
+                                                                // as we are checking the code before compilation - i.e.
+                                                                // it makes sense on its own.
+
+                string pathToDGML = @"d:\here.dgml\Model.dgml";
+
+                string pathh = "\"D:\\here.dgml\"";
+
+                string eName = "badNameThatNoOneWillUse";                
+                fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");    // create infering engine
+                fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathh);
+
+                HashSet<string> added = new HashSet<string>();
+
+                viewModel.Reset();                                // zero the content of current model
+                Charts.Children.RemoveRange(0, Charts.Children.Count);      // remove previous charts
+
+                foreach (string varName in activeVars)
+                {
+                    Console.WriteLine("processing var {0}", varName);
+
+                    Console.Write("infering... ");
+                    FSharpOption<Shell.FsiValue> val = fsiSession.EvalExpression(eName + ".Infer(" + varName + ")");
+                    Console.WriteLine(" OK\n"); 
+
+                    if (FSharpOption<Shell.FsiValue>.get_IsSome(val))
+                    {
+                        string distribution = ((val.Value).ReflectionValue).ToString();
+                        ReadBox.Text += varName + " = " + distribution + Environment.NewLine;
+
+                        if (!added.Contains(varName))
+                        {
+                            // Update the graph accordingly and get set of connected vertices as a result                            
+                            var connectedComponent = viewModel.Update(pathToDGML);
+                            added.UnionWith(connectedComponent);                        
+                        }
+
+                        viewModel.UpdateDistribution(varName, distribution);
+
+                        //drawDistribution(distribution);
+                        // TODO: change that to "createXAMLChild" or something. Assosiate the
+                        // element with the coressponding node in the ModelGraph, so a 
+                        // "node expansion" visualisation can be implemented on a later stage.
+                        
+                    }
+                    else Console.WriteLine("Error evaluating expression");
+                }               
+
             }
-
-            #endregion
-
-            #region Evaluate F# Script
-            fsiSession.EvalScript("tmp.fsx");
-
-            // FIXME: Maybe extract the text of the last namespace
-            // defined, to show in the "Read Box" of the IDE.
-            string output = outStream.ToString();
-            Console.WriteLine(output);           
-
-            #endregion
-
-            #region Inject
-            // Infer each variable that is in the active variables list
-
-            // open module (that might be unsafe...?)
-            fsiSession.EvalInteraction("open Tmp");
-
-            // engine
-            string eName = "badNameThatNoOneWillUse";
-            fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");
-
-            foreach (string varName in activeVars)
+            catch (Exception err) 
             {
-                //fsiSession.EvalInteraction(eName +".Infer(" + varName + ")");
-
-                FSharpOption<Shell.FsiValue> val = fsiSession.EvalExpression(eName + ".Infer(" + varName + ")");
-
-                if (FSharpOption<Shell.FsiValue>.get_IsSome(val))
-                    ReadBox.Text += varName + " = " + ((val.Value).ReflectionValue).ToString() + Environment.NewLine;
-                else Console.WriteLine("Error evaluating expression");
+                ReadBox.Text = err.Message;
+                Console.WriteLine("{0}", err.Message );
             }
-
-            #endregion
+            //@"c:\temp\MyTest.txt"
+            //string pathhh = @"d:\here.dgml\Model.dgml";
+            viewModel.ReLayoutGraph();
 
             #region F# Eval each line
             /*string[] lines = (WriteBox.Text).Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
@@ -192,6 +228,15 @@ namespace Infer.IDE
             #endregion
             
 
+        }
+
+        private void drawDistribution(string distribution)
+        {
+            var wfh = new WindowsFormsHost();
+            wfh.Height = 150.0;
+            Charts.Children.Add(wfh);
+
+            Distributions.draw(wfh, distribution);
         }
 
         private void TextBox_TextChanged_1(object sender, TextChangedEventArgs e)

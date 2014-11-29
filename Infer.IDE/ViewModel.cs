@@ -15,11 +15,13 @@ namespace Infer.IDE
     public class ViewModel : INotifyPropertyChanged
     {
         private ModelGraph graph;
-        public int count;
+        private bool graphEnabled;
+        public int count;        
 
         public ViewModel()
         {
-            
+            graph = new ModelGraph();
+            graphEnabled = true;
         }
 
         public ModelGraph Graph
@@ -28,14 +30,42 @@ namespace Infer.IDE
             set { graph = value; }
         }
 
-        internal void ReLayoutGraph(string path)
+        public bool GraphEnabled
         {
-            Graph = Backend.Utils.getModel(path);
+            get { return graphEnabled; }
+        }
+
+        internal void ReLayoutGraph()
+        {
+            graphEnabled = false;
+            NotifyPropertyChanged("GraphEnabled");
+
+            //Graph = Backend.Utils.getModel(@"d:\here.dgml\Model.dgml");
             NotifyPropertyChanged("Graph");
+
+            graphEnabled = true;            
+            NotifyPropertyChanged("GraphEnabled");
+
             // FIXME (if you can...) Program crashes when you put mouse 
             // over graph's visualisation during a refresh.
         }
 
+        internal List<string> Update(string path)
+        {
+            //returns list of var names in the dgml file at location "path"
+
+            var ret = new List<string>();
+
+            ModelGraph g = Backend.Utils.getModel(path);
+            Graph.Union(g);
+
+            foreach(ModelVertex v in g.Vertices)
+            {
+                ret.Add(v.Label);              
+            }
+
+            return ret;
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void NotifyPropertyChanged(string info)
@@ -45,6 +75,22 @@ namespace Infer.IDE
                 PropertyChanged(this, new PropertyChangedEventArgs(info));
             }
         }
+
+        internal void UpdateDistribution(string varName, string distribution)
+        {
+            var v = Graph.FindVertexByName(varName);
+            v.Distribution = distribution;
+        }
+
+        internal void Reset()
+        {
+            Graph = new ModelGraph();
+        }
+
+
+
     }
+
     
+
 }

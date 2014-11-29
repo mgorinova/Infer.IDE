@@ -60,13 +60,15 @@ namespace Backend
         }
         
 
-        #region Transform a Factor Graph to a Graphical Model
+        /*
+         * Transform a Factor Graph to a Graphical Model
+         */ 
         public static ModelGraph FactorToModel(DirectedGraph graph)
         {
             var g = new ModelGraph(graph);
             var m = new ModelGraph();
 
-            filter(g.Vertices, m);
+            filter(g.Vertices, m); //FIXME: ugly - change it to m.AddRelevantVertices(g.Vertices)
             //var edges = new List<ModelEdge>();           
 
             foreach(ModelVertex v in m.Vertices)
@@ -94,23 +96,15 @@ namespace Backend
 
             return m;
         }
-        #endregion
 
         public static ModelGraph getModel(string dest)
         {
-            DirectedGraph graphNew = Deserializer.ReadGraph(dest);
+            Console.Write("deserializing and processing graph...");
 
+            DirectedGraph graphNew = Deserializer.ReadGraph(dest);
             ModelGraph model = Utils.FactorToModel(graphNew);
 
-            foreach (ModelVertex v in model.Vertices)
-            {
-                Console.WriteLine("Vertex: " + v.Label);
-            }
-
-            foreach (ModelEdge e in model.Edges)
-            {
-                Console.WriteLine("Edge {0} -> {1}", e.Source.Label, e.Target.Label);
-            }
+            Console.WriteLine(" OK\n");
 
             return model;
         }

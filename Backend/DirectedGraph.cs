@@ -15,7 +15,7 @@ namespace Backend
         Other = 4
     }
 
-    #region Node
+    
     [Serializable]
     [XmlRoot("Node")]
     public class Node
@@ -49,9 +49,9 @@ namespace Backend
         {
         }
     }
-    #endregion 
+    
 
-    #region Link
+    
     [Serializable]
     [XmlRoot("Link")]
     public class Link
@@ -76,7 +76,7 @@ namespace Backend
         {
         }
     }
-    #endregion
+    
 
     [Serializable]
     [XmlRoot("DirectedGraph")]
