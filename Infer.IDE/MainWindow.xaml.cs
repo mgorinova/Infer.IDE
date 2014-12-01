@@ -17,6 +17,7 @@ using System.Windows.Forms.Integration;
 using System.IO;
 
 using Microsoft.FSharp.Compiler.Interactive;
+using Microsoft.FSharp.Compiler;
 using Microsoft.FSharp.Core;
 using Microsoft.FSharp.Collections;
 
@@ -52,14 +53,14 @@ namespace Infer.IDE
             string[] txt = { "fsi.exe " + "--noninteractive" };
 
             Shell.FsiEvaluationSessionHostConfig fsiConfig = Shell.FsiEvaluationSession.GetDefaultConfiguration();
-            fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.None);
-
+            fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.Some(true));
+            
             foreach(string a in CompilerStrings.assemblies)
                 fsiSession.EvalInteraction(a);
 
             InitializeComponent();
 
-            WriteBox.Text = CompilerStrings.sprinkler;
+            WriteBox.Text = CompilerStrings.allDistributions;
 
         }
 
@@ -98,6 +99,7 @@ namespace Infer.IDE
                  * Get a list of Infer.NET variables.
                  * If the code fails to check - an exception is thrown
                  */
+
                 activeVars = Checker.check(path, current);
                 Console.WriteLine(" OK \n");
 
@@ -107,8 +109,19 @@ namespace Infer.IDE
                  *  F# code evaluation:
                  */
                 Console.Write("script evaluation...");
-                fsiSession.EvalScript("tmp.fsx");
-                Console.WriteLine(" OK \n");
+                try
+                {
+                    fsiSession.EvalScript("tmp.fsx");
+                    Console.WriteLine(" OK \n");
+                }
+                catch (Exception err)
+                {
+                    ReadBox.Text = err.Message;
+                    ReadBox.Text += err.InnerException.Message;
+
+                    Console.WriteLine(err.Message);
+                    Console.WriteLine(err.InnerException.Message);
+                }
 
                 // FIXME: Maybe extract the text of the last namespace
                 // defined, to show in the "Read Box" of the IDE.
@@ -132,9 +145,13 @@ namespace Infer.IDE
 
                 string pathh = "\"D:\\here.dgml\"";
 
-                string eName = "badNameThatNoOneWillUse";                
+                Random r = new Random();
+
+                /*
+                string eName = "tempName" + r.Next();                
                 fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");    // create infering engine
                 fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathh);
+                */
 
                 HashSet<string> added = new HashSet<string>();
 
@@ -144,6 +161,12 @@ namespace Infer.IDE
                 foreach (string varName in activeVars)
                 {
                     Console.WriteLine("processing var {0}", varName);
+
+                    //*
+                    string eName = "tempName" + r.Next();
+                    fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");    // create infering engine
+                    fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathh);
+                     //*/
 
                     Console.Write("infering... ");
                     FSharpOption<Shell.FsiValue> val = fsiSession.EvalExpression(eName + ".Infer(" + varName + ")");
@@ -163,24 +186,32 @@ namespace Infer.IDE
 
                         viewModel.UpdateDistribution(varName, distribution);
 
-                        //drawDistribution(distribution);
+                         drawDistribution(distribution, varName);
                         // TODO: change that to "createXAMLChild" or something. Assosiate the
                         // element with the coressponding node in the ModelGraph, so a 
                         // "node expansion" visualisation can be implemented on a later stage.
                         
                     }
                     else Console.WriteLine("Error evaluating expression");
-                }               
+                }
 
             }
             catch (Exception err) 
             {
                 ReadBox.Text = err.Message;
                 Console.WriteLine("{0}", err.Message );
+
+                Console.Write(outStream.ToString());
+
             }
             //@"c:\temp\MyTest.txt"
             //string pathhh = @"d:\here.dgml\Model.dgml";
             viewModel.ReLayoutGraph();
+
+            //foreach (Backend.ModelVertex v in viewModel.Graph.Vertices)
+                //Console.WriteLine("Vertex {0} with distribution {1}", v.Label, v.Distribution);
+            
+
 
             #region F# Eval each line
             /*string[] lines = (WriteBox.Text).Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
@@ -230,13 +261,13 @@ namespace Infer.IDE
 
         }
 
-        private void drawDistribution(string distribution)
+        private void drawDistribution(string distribution, string name)
         {
             var wfh = new WindowsFormsHost();
             wfh.Height = 150.0;
             Charts.Children.Add(wfh);
 
-            Distributions.draw(wfh, distribution);
+            Distributions.draw(wfh, distribution, name);
         }
 
         private void TextBox_TextChanged_1(object sender, TextChangedEventArgs e)

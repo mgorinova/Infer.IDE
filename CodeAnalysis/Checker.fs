@@ -9,7 +9,6 @@ open System
 
 
 let check location input =
-
     
     let checker = FSharpChecker.Create(keepAssemblyContents=true)
 
@@ -70,7 +69,7 @@ let check location input =
 
     let vars = filter declarations "" []
 
-    let activeVars = 
-        List.map (fun (name, _, _) -> name)  vars
-
+    let activeVars = List.map (fun (name, _, _) -> name)  vars
+                  |> List.rev
+ 
     activeVars

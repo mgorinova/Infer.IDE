@@ -34,7 +34,7 @@ namespace Backend
             type = t;
 
             winHost = new WindowsFormsHost();
-            winHost.Height = 150.0;
+            winHost.Height = 200.0;
             hostsParent.Children.Add(winHost);
         }
 

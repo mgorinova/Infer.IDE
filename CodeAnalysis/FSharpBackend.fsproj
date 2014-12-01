@@ -12,7 +12,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>CodeAnalysis</Name>
+    <Name>FSharpBackend</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -44,6 +44,15 @@
     </Reference>
     <Reference Include="FSharp.Compiler.Service">
       <HintPath>bin\Debug\FSharp.Compiler.Service.dll</HintPath>
+    </Reference>
+    <Reference Include="Infer.Compiler">
+      <HintPath>..\Infer.IDE\bin\Debug\infer\Infer.Compiler.dll</HintPath>
+    </Reference>
+    <Reference Include="Infer.FSharp">
+      <HintPath>..\Infer.IDE\bin\Debug\infer\Infer.FSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Infer.Runtime">
+      <HintPath>..\Infer.IDE\bin\Debug\infer\Infer.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

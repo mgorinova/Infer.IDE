@@ -36,42 +36,62 @@ open MicrosoftResearch.Infer.Distributions
 open MicrosoftResearch.Infer.Factors
 open MicrosoftResearch.Infer.FSharp
 
-let C = Variable.Bernoulli(0.5).Named(""cloudy"")
+let Cloudy = Variable.Bernoulli(0.5).Named(""Cloudy"")
 
-let S = Variable.New<bool>().Named(""sprinkler"")
-let R = Variable.New<bool>().Named(""rain"")
+let Sprinkler = Variable.New<bool>().Named(""Sprinkler"")
+let Rain = Variable.New<bool>().Named(""Rain"")
 
-let ifc = Variable.If(C)
-S.SetTo(Variable.Bernoulli(0.1))
-R.SetTo(Variable.Bernoulli(0.8))
+let ifc = Variable.If(Cloudy)
+Sprinkler.SetTo(Variable.Bernoulli(0.1))
+Rain.SetTo(Variable.Bernoulli(0.8))
 ifc.CloseBlock()   
     
-let els = Variable.IfNot(C)
-S.SetTo(Variable.Bernoulli(0.5))
-R.SetTo(Variable.Bernoulli(0.2))
+let els = Variable.IfNot(Cloudy)
+Sprinkler.SetTo(Variable.Bernoulli(0.5))
+Rain.SetTo(Variable.Bernoulli(0.2))
 els.CloseBlock()
 
-let W = Variable.New<bool>().Named(""wet"")
+let Wet = Variable.New<bool>().Named(""Wet"")
 
-let ifs = Variable.If(S)
-let ifr = Variable.If(R)
-W.SetTo(Variable.Bernoulli(0.99))
+let ifs = Variable.If(Sprinkler)
+let ifr = Variable.If(Rain)
+Wet.SetTo(Variable.Bernoulli(0.99))
 ifr.CloseBlock()
-let ifr2 = Variable.IfNot(R)
-W.SetTo(Variable.Bernoulli(0.9))
+let ifr2 = Variable.IfNot(Rain)
+Wet.SetTo(Variable.Bernoulli(0.9))
 ifr2.CloseBlock()
 ifs.CloseBlock()
 
-let ifs2 = Variable.IfNot(S)
-let ifr3 = Variable.If(R)
-W.SetTo(Variable.Bernoulli(0.9))
+let ifs2 = Variable.IfNot(Sprinkler)
+let ifr3 = Variable.If(Rain)
+Wet.SetTo(Variable.Bernoulli(0.9))
 ifr3.CloseBlock()
-let ifr4 = Variable.IfNot(R)
-W.SetTo(Variable.Bernoulli(0.0))
+let ifr4 = Variable.IfNot(Rain)
+Wet.SetTo(Variable.Bernoulli(0.0))
 ifr4.CloseBlock()
 ifs2.CloseBlock()    
 
-S.ObservedValue <- true
+//Sprinkler.ObservedValue <- true
+            ";
+
+
+        public static string allDistributions = @"open MicrosoftResearch.Infer
+open MicrosoftResearch.Infer.Models
+open MicrosoftResearch.Infer.Distributions
+open MicrosoftResearch.Infer.Factors
+open MicrosoftResearch.Infer.FSharp
+
+let bernoulli = Variable.Bernoulli(0.6).Named(""bernoulli"")                              
+                         
+let gaussian = Variable.GaussianFromMeanAndPrecision(0.0, 0.5).Named(""gaussian"")                                    
+         
+let gamma = Variable.GammaFromShapeAndScale(1.0, 5.0).Named(""gamma"")                             
+                                                           
+let poisson = Variable.Poisson(Variable.Observed(0.3)).Named(""poisson"")                                  
+let binomial = Variable.Binomial(10, Variable.Observed(0.5)).Named(""binomial"")                           
+let beta = Variable.Beta(2.0, 2.0).Named(""beta"")                          
+
+
             ";
 
 

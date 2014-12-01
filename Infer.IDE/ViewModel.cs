@@ -87,8 +87,6 @@ namespace Infer.IDE
             Graph = new ModelGraph();
         }
 
-
-
     }
 
     
