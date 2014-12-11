@@ -9,6 +9,10 @@ open System.Drawing
 open System
 
 open MicrosoftResearch.Infer.Distributions
+open MicrosoftResearch.Infer.Models
+
+
+let var = Variable.GaussianFromMeanAndVariance(0.0, 1.0)
 
 let gaussian mean variance x = Gaussian.FromMeanAndVariance(mean, variance).GetLogProb x |> Operators.exp
 let gamma shape scale x = Gamma.FromShapeAndScale(shape, scale).GetLogProb x |> Operators.exp
@@ -34,6 +38,7 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
 
     let xAxisStyle = new LabelStyle(FontSize = 8.0)
     let yAxisStyle = new LabelStyle(FontSize = 8.0)
+    
 
     let grid = new Grid(LineColor = Color.LightGray) 
 
@@ -43,9 +48,9 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
         let prob = System.Convert.ToDouble(distType.[1])
         let data = [("True", prob); ("False", (1.0 - (prob)))]
 
-        let chart = Chart.Column(data, Name = varName, Labels = (["True"; "False"]))
+        let chart = Chart.Column(data, Name = varName)//, Labels = (["True"; "False"]))
                     |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
-                    |> Chart.WithXAxis(Min = 0.0, Max = 3.0, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid, Enabled = false)
+                    |> Chart.WithXAxis(Min = 0.0, Max = 3.0, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid, Enabled = true)
                     |> Chart.WithYAxis(Min = 0.0, Max = 1.0, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)                 
 
         winForm.Child <- new ChartControl(chart)
@@ -62,14 +67,15 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
             
         //printfn "%f, %f" mean variance
         
-        let rightBound = mean + variance //mean + Math.Round(2.5*sqrt(variance), 2)
+        let rightBound = mean + Math.Round(2.5*sqrt(variance), 1) //mean + 2.0*variance 
         let leftBound  = 2.0*mean - rightBound
-        let top        = 1.0 //2.0*Math.Round((gaussian mean variance mean), 1)
-        let step       = (rightBound - leftBound)/10.0
+        let top        = 1.0
+        let step       = Math.Round((rightBound - leftBound)/30.0, 1)
+        //let xAxisStyle = new LabelStyle(TruncatedLabels = false, IsStaggered = true, FontSize = float 8.0f)
 
-        let chart = Chart.Line [for i in leftBound .. step .. rightBound -> (i, (gaussian mean variance i))]
+        let chart = Chart.Line ([for i in leftBound .. step .. rightBound -> (i, (gaussian mean variance i))], Name = varName)
                     |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
-                    |> Chart.WithXAxis(Min = leftBound, Max = rightBound, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid, Enabled = false)
+                    |> Chart.WithXAxis(Min = leftBound, Max = rightBound, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid, Enabled = true)
                     |> Chart.WithYAxis(Min = 0.0, Max = top, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)  
 
         winForm.Child <- new ChartControl(chart)
@@ -87,7 +93,7 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
         let rightBound = 10.0*shape
         let step = rightBound/50.0
 
-        let chart = Chart.Line [for i in 0.0 .. step .. rightBound -> (i, (gamma shape scale i))]
+        let chart = Chart.Line ([for i in 0.0 .. step .. rightBound -> (i, (gamma shape scale i))], Name = varName)
                     |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
                     |> Chart.WithXAxis(Min = 0.0, Max = rightBound, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid)
                     |> Chart.WithYAxis(Min = 0.0, Max = 1.0, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)  
@@ -107,7 +113,7 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
         let rightBound = 2.0*trueCount
         let step = rightBound/30.0
 
-        let chart = Chart.Line [for i in 0.0 .. step .. rightBound -> (i, (beta trueCount falseCount i))]
+        let chart = Chart.Line ([for i in 0.0 .. step .. rightBound -> (i, (beta trueCount falseCount i))], Name = varName)
                     |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
                     |> Chart.WithXAxis(Min = 0.0, Max = rightBound, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid)
                     |> Chart.WithYAxis(Min = 0.0, Max = trueCount, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)  
@@ -117,7 +123,7 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
     | "Discrete" ->
         let data = (distType.[1]).Split([|' '|])
 
-        let chart = Chart.Column(data)
+        let chart = Chart.Column(data, Name = varName)
                   |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
                   |> Chart.WithXAxis(LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid)
                   |> Chart.WithYAxis(LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)    
@@ -130,7 +136,7 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
         let rightBound = 20.0*mean
         let step = rightBound/10.0
 
-        let chart = Chart.Point [for i in 0..20 -> (i, (poisson mean i))]
+        let chart = Chart.Point ([for i in 0..20 -> (i, (poisson mean i))], Name = varName)
                   |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
                   |> Chart.WithXAxis(LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid)
                   |> Chart.WithYAxis(LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)
@@ -143,4 +149,10 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
     | "NonconjugateGaussian" ->
     | "TruncatedGaussian" ->
     | "WrappedGaussian" ->*)
-    | _ -> failwith "unexpected"
+    | _ -> 
+        printfn "\n%s is an unexpected distribution..." distType.[0]
+        printfn "\n***\n%s\n***\n" distribution
+
+        // TODO: implement visualisation for arrays?
+        if (distribution.StartsWith "[") then printfn "data array"
+        else failwith "unexpected"

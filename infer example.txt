@@ -1,0 +1,8 @@
+
+// Data from clinical trial
+let controlGroup =   Variable.Observed<bool>([| false; false; true; false; false |])
+let treatedGroup = Variable.Observed<bool>([| true; false; true; true; true |])
+let i = controlGroup.Range
+
+let j = treatedGroup.Range
+

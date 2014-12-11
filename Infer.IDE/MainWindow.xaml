@@ -4,7 +4,7 @@
         xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
         xmlns:local="clr-namespace:Infer.IDE"
         xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"        
-        Title="MainWindow" Height="500" Width="1000">
+        Title="InferIDE" Height="500" Width="1000">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -22,7 +22,7 @@
 
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
+                <RowDefinition Name="VisRow" Height="*" />
                 <RowDefinition Height="35"/>
                 <RowDefinition Height="70"/>
             </Grid.RowDefinitions>
@@ -33,10 +33,9 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <TextBox x:Name="WriteBox" Grid.Column="0" TextChanged="TextBox_TextChanged" AcceptsReturn="True">
-
-                </TextBox>
-
+                <ScrollViewer Grid.Column="0">
+                    <TextBox x:Name="WriteBox" TextChanged="TextBox_TextChanged" AcceptsReturn="True"/>
+                </ScrollViewer>
                 <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
                 <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
                         Graph="{Binding Graph}"
@@ -48,22 +47,53 @@
                         AsyncCompute="True"
                         IsEnabled="{Binding GraphEnabled}"
                         OverlapRemovalAlgorithmType="FSA"
-                                            />
-            
-                <!--AsyncCompute makes relayout faster and less buggy-->
+                                            >
+                </local:ModelGraphLayout>
+                <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
+                           VerticalAlignment="Stretch" 
+                           Opacity="0.5" Panel.ZIndex="-1"                           
+                           />
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Height}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
 
-                <!--</zoom:ZoomControl> -->   
+                <!--AsyncCompute makes relayout faster and less buggy-->
+                <!--</zoom:ZoomControl> -->
 
             </Grid>
 
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="400"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="250"/>
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <Button x:Name="Compile" Grid.Column="0" Width="150" HorizontalAlignment="Center" Click="Compile_Click" Content="Compile"/>
-                <Button x:Name="Refresh" Grid.Column="1" Width="150" HorizontalAlignment="Center" Click="Refresh_Click" Content="Refresh"/>
+                <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25"  SelectionChanged="ComboBox_SelectionChanged">
+                    <ComboBoxItem>Sprinkler</ComboBoxItem>
+                    <ComboBoxItem>Distributions</ComboBoxItem>
+                    <ComboBoxItem>Learning a Gaussian</ComboBoxItem>
+                    <ComboBoxItem>Truncated Gaussian</ComboBoxItem>
+                    <ComboBoxItem>Two Coins</ComboBoxItem>
+                    <ComboBoxItem>Mixture of Gaussians</ComboBoxItem>
+
+                </ComboBox>
+                <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <StatusBarItem Width="50">
+                        <Image Name="StatusImage">                            
+                        </Image>
+                    </StatusBarItem>
+
+                    <StatusBarItem>
+                        <TextBlock Width="100" Name="StatusString"/>
+                    </StatusBarItem>
+                    
+                    <StatusBarItem HorizontalAlignment="Right" Margin="0,0,20,0">
+                        <ProgressBar Name = "ProgressBar"  Value="0" Width="170" Height="16" ValueChanged="ProgressBar_ValueChanged" />
+                    </StatusBarItem>
+                </StatusBar>
+
+
+
             </Grid>
 
             <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True">

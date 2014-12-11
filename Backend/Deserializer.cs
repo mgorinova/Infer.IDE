@@ -19,6 +19,7 @@ namespace Backend
             DirectedGraph ret = new DirectedGraph();
             ret = (DirectedGraph)reader.Deserialize(file);
 
+            file.Close();
             return ret;
         }
 

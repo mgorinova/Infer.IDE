@@ -18,6 +18,10 @@ namespace Backend
 
         private string distribution;
 
+        private bool observed;
+
+        private bool array;
+
         private WindowsFormsHost winHost;
 
         public ModelVertex(int i, string l, NodeType t)
@@ -25,6 +29,8 @@ namespace Backend
             id = i;
             label = l;
             type = t;
+
+            array = false;
         }
 
         public ModelVertex(int i, string l, NodeType t, StackPanel hostsParent)
@@ -32,6 +38,8 @@ namespace Backend
             id = i;
             label = l;
             type = t;
+
+            array = false;
 
             winHost = new WindowsFormsHost();
             winHost.Height = 200.0;
@@ -48,6 +56,8 @@ namespace Backend
         public NodeType Type { get { return type; } }
         public WindowsFormsHost WinHost { get { return winHost; } }
         public string Distribution { get { return distribution; } set { distribution = value; } }
+        public bool Observed { get { return observed; } set { observed = value; } }
+        public bool Array { get { return array; } set { array = value; } }
     }
     
 
@@ -71,8 +81,13 @@ namespace Backend
             foreach (Node n in g.Nodes)
             {
                 int id = ParseID(n.Id);
+                string label = ParseLabel(n.Label);
                 NodeType type = Utils.ClassifyNode(n);
-                this.AddVertex(new ModelVertex(id, n.Label, type));
+
+                ModelVertex add = new ModelVertex(id, label, type);
+                if (label != n.Label) add.Array = true;
+
+                this.AddVertex(add);
             }
 
             foreach (Link e in g.Links)
@@ -87,6 +102,15 @@ namespace Backend
                 this.AddEdge(new ModelEdge(FindVertex(id_source), FindVertex(id_target)));              
             }
            
+        }
+
+        private string ParseLabel(string l)
+        {
+            string[] splitArr = new string[] { @"[" };
+            var sub = l.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            
+            if(sub.Length > 1) Console.WriteLine("Split in {0} and {1}", sub[0], sub[1]);
+            return sub[0];
         }
 
         #region Other Constructors
@@ -118,7 +142,8 @@ namespace Backend
                 if (v.Label == name) return v;
             }
 
-            throw new Exception("Node with name " + name + " doesn't exist in the graph.");
+            //throw new Exception("Node with name " + name + " doesn't exist in the graph.");
+            return null;
         }
 
 

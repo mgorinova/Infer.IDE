@@ -19,7 +19,7 @@ let check location input =
             checker.GetProjectOptionsFromScript(location, inp)
             |> Async.RunSynchronously
 
-        checker.ParseAndCheckProject(projOptions) 
+        checker.ParseAndCheckProject(projOptions)
         |> Async.RunSynchronously
 
 
@@ -27,7 +27,7 @@ let check location input =
         parseAndCheckSingleFile(input)
 
     if checkProjectResults.Errors.Length = 0 then 
-        printf "No Errors"     
+        printfn "No Errors"     
     else 
         failwith (checkProjectResults.Errors.[0].ToString())
 
@@ -45,31 +45,46 @@ let check location input =
 
 
     // TODO: assign names to Infer.NET vars automatically (.Named("-//-")) 
-    let rec filter decls pathToSource acc =
-        match decls with 
-        | [] -> acc
-        | d::ds ->
-            match d with
-            | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(symbol, args, expression) ->
+    let filterAndName decls pathToSource =
 
-                let t = expression.Type.ToString()     
-                if(t.StartsWith("type MicrosoftResearch.Infer.Models.Variable")) then 
-                    let innerType = t.Substring(44)
-                    filter ds pathToSource ((symbol.CompiledName, "Variable", innerType)::acc)
-                elif(t.StartsWith("type MicrosoftResearch.Infer.InferenceEngine")) then
-                    // consider also extracting infering engines
-                    // from the code: filter ds sourceLocation ((symbol.CompiledName, "Engine", "")::acc)
-                    filter ds pathToSource acc
-                else filter ds pathToSource acc                
+        let source = (input.Split([|'\n'|]))
+                   |> Array.map (fun (x:string) -> String.Concat(x, "\n"))
+                   |> ref
 
-            | FSharpImplementationFileDeclaration.InitAction(e) ->
-                filter ds pathToSource acc
-            | _ -> filter ds pathToSource acc
+        let addName (location:Range.range) name =
 
+            //FIXME: declarations of variables in loops will break horribly with that approach
+            //FIXME: add support for declarations on multiple lines
+            let newLine = (!source).[location.StartLine - 1].Insert((location.StartColumn - 1), " (").Insert((location.EndColumn + 2), (" ).Named(\"" + name + "\")")  )
+            (!source).[location.StartLine - 1]  <- newLine
+            
+        let rec filter decls acc =           
+            match decls with 
+            | [] -> acc
+            | d::ds ->
+                match d with
+                | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(symbol, args, expression) ->
 
-    let vars = filter declarations "" []
+                    let t = expression.Type.ToString()     
+                    if(t.StartsWith("type MicrosoftResearch.Infer.Models.Variable")) then 
+                        let innerType = t.Substring(44)
+                        addName (expression.Range) (symbol.CompiledName) 
+                        filter ds ((symbol.CompiledName, "Variable", innerType)::acc)
+                    elif(t.StartsWith("type MicrosoftResearch.Infer.InferenceEngine")) then
+                        filter ds acc
+                    else filter ds acc                
+
+                | FSharpImplementationFileDeclaration.InitAction(e) ->
+                    filter ds acc
+                | _ -> filter ds acc
+
+        let result = filter decls []        
+        let newSource = String.Concat(!source)
+        File.WriteAllText(pathToSource, newSource) 
+        result
+
+    let vars = filterAndName declarations location
 
     let activeVars = List.map (fun (name, _, _) -> name)  vars
-                  |> List.rev
- 
+                  |> List.rev  
     activeVars

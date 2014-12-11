@@ -77,9 +77,19 @@ namespace Infer.IDE
         }
 
         internal void UpdateDistribution(string varName, string distribution)
-        {
+        {          
             var v = Graph.FindVertexByName(varName);
-            v.Distribution = distribution;
+            if (v != null)
+            {
+                v.Distribution = distribution;
+                v.Observed = false;
+            }
+            else
+            {
+                // Means the variable has been observed.
+                // TODO: implement some kind of handling... 
+                throw new Exception(varName + " is an observed variable");
+            }
         }
 
         internal void Reset()

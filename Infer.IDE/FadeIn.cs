@@ -24,4 +24,12 @@ namespace Infer.IDE
 
         }
     }
+
+    public class VisabilityFadeIn
+    {
+        public VisabilityFadeIn()
+        { 
+
+        }
+    }
 }
