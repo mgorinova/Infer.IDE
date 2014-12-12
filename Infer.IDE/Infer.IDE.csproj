@@ -89,8 +89,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CompilerStrings.cs" />
-    <Compile Include="FadeIn.cs" />
+    <Compile Include="Code.cs" />
+    <Compile Include="Strings.cs" />
     <Compile Include="RefreshThread.cs" />
     <Compile Include="ViewModel.cs" />
     <Page Include="MainWindow.xaml">

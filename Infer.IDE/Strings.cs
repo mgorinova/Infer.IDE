@@ -5,8 +5,10 @@ using System.Text;
 
 namespace Infer.IDE
 {
-    static class CompilerStrings
+    static class Strings
     {
+        public static string path = System.IO.Directory.GetCurrentDirectory() + "\\tmp.fsx";
+
         public static string[] assemblies = { 
                                           "#r \"infer\\Infer.Compiler.dll\"", 
                                           "#r \"infer\\Infer.Runtime.dll\"", 

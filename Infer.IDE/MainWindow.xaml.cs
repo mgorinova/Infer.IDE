@@ -30,6 +30,9 @@ namespace Infer.IDE
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly RefreshThread refreshThreadObject;
+        private Thread previousThread;
+
         private ViewModel viewModel;
         private int cnt = 0;
         private string [] paths = {"TwoCoins.dgml", "Sprinkler-Mine.dgml", "Sprinkler.dgml"};
@@ -56,7 +59,7 @@ namespace Infer.IDE
             Shell.FsiEvaluationSessionHostConfig fsiConfig = Shell.FsiEvaluationSession.GetDefaultConfiguration();
             fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.Some(true));
 
-            foreach(string a in CompilerStrings.assemblies)                
+            foreach(string a in Strings.assemblies)                
                 fsiSession.EvalInteraction(a);
                 
 
@@ -64,12 +67,44 @@ namespace Infer.IDE
 
             Cover.Visibility = Visibility.Hidden;
             LoadCodeBox.SelectedIndex = 0;
-            WriteBox.Text = CompilerStrings.sprinkler;
+            WriteBox.Text = Strings.sprinkler;
 
+            refreshThreadObject = new RefreshThread(ReadBox, Cover, Charts, ProgressBar, viewModel, fsiSession);
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            if (refreshThreadObject == null) return;
+
+            if (!Monitor.TryEnter(refreshThreadObject))
+            {
+                previousThread.Abort();
+
+                Monitor.Enter(refreshThreadObject);
+
+                refreshThreadObject.CodeString = WriteBox.Text;
+
+                previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
+                // The calling thread must be STA(Single-Threaded Apartment), 
+                // because many UI components require this.
+                previousThread.SetApartmentState(ApartmentState.STA);
+
+                previousThread.Start();
+
+                Monitor.Exit(refreshThreadObject);
+            }
+            else
+            {
+                refreshThreadObject.CodeString = WriteBox.Text;
+
+                previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
+                // The calling thread must be STA(Single-Threaded Apartment), 
+                // because many UI components require this.
+                previousThread.SetApartmentState(ApartmentState.STA);
+
+                previousThread.Start();
+                Monitor.Exit(refreshThreadObject);
+            }                     
 
         }
 
@@ -82,15 +117,42 @@ namespace Infer.IDE
 
         private void Compile_Click(object sender, RoutedEventArgs e)
         {
-            var rt = new RefreshThread(path, WriteBox.Text, ReadBox, Cover, Charts, ProgressBar, viewModel, fsiSession);
+            /*code.CodeString = WriteBox.Text;
+            var refreshThread = new Thread(new ThreadStart(code.check));
 
-            var refreshThread = new Thread(new ThreadStart(rt.run));
-            // The calling thread must be STA(Single-Threaded Apartment), 
-            // because many UI components require this.
-            refreshThread.SetApartmentState(ApartmentState.STA);            
-            
-            refreshThread.Start();
-            
+            refreshThread.SetApartmentState(ApartmentState.STA);
+            refreshThread.Start();*/
+
+            if (!Monitor.TryEnter(refreshThreadObject))
+            {
+                previousThread.Abort();
+
+                Monitor.Enter(refreshThreadObject);
+
+                refreshThreadObject.CodeString = WriteBox.Text;
+
+                previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
+                // The calling thread must be STA(Single-Threaded Apartment), 
+                // because many UI components require this.
+                previousThread.SetApartmentState(ApartmentState.STA);
+
+                previousThread.Start();
+
+                Monitor.Exit(refreshThreadObject);
+
+            }
+            else
+            {
+                refreshThreadObject.CodeString = WriteBox.Text;
+
+                previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
+                // The calling thread must be STA(Single-Threaded Apartment), 
+                // because many UI components require this.
+                previousThread.SetApartmentState(ApartmentState.STA);
+
+                previousThread.Start();
+                Monitor.Exit(refreshThreadObject);
+            }                     
             
         }
 
@@ -101,22 +163,22 @@ namespace Infer.IDE
             switch (selection)
             {
                 case 0:
-                    WriteBox.Text = CompilerStrings.sprinkler;
+                    WriteBox.Text = Strings.sprinkler;
                     break;
                 case 1:
-                    WriteBox.Text = CompilerStrings.allDistributions;
+                    WriteBox.Text = Strings.allDistributions;
                     break;
                 case 2:
-                    WriteBox.Text = CompilerStrings.learningGaussian;
+                    WriteBox.Text = Strings.learningGaussian;
                     break;
                 case 3:
-                    WriteBox.Text = CompilerStrings.truncGaussian;
+                    WriteBox.Text = Strings.truncGaussian;
                     break;
                 case 4:
-                    WriteBox.Text = CompilerStrings.twoCoins;
+                    WriteBox.Text = Strings.twoCoins;
                     break;
                 case 5:
-                    WriteBox.Text = CompilerStrings.mixGaussians;
+                    WriteBox.Text = Strings.mixGaussians;
                     break;
             }
 
