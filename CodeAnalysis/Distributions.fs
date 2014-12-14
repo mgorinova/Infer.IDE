@@ -29,7 +29,7 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
     let arr = [| '('; ')' |]
 
     let distType = distribution.Split(arr)
-    printfn "1[%s] 2[%s] 3[%s]" distType.[0] distType.[1] distType.[2]
+    //printfn "1[%s] 2[%s] 3[%s]" distType.[0] distType.[1] distType.[2]
         
     let arr = [| '('; ')' |]
 

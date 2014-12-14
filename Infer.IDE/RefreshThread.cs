@@ -25,6 +25,7 @@ namespace Infer.IDE
     {
         private string path = Strings.path;
         private string code;
+        private int id;
         private Shell.FsiEvaluationSession fsiSession;
         private TextBox rBox;
         private Rectangle cover;
@@ -32,16 +33,16 @@ namespace Infer.IDE
         private ProgressBar progress;
         private ViewModel vModel;
 
-        private Thread prevThread;
         private readonly Object lockCode = new Object();
 
         public string CodeString { get { return code; } set { code = value; } }
+        public int Id { get { return id; } set { id = value; } }
         //private string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
 
         public RefreshThread(TextBox readBox, Rectangle workingCover,
                              StackPanel chartsPanel, ProgressBar progressBar, ViewModel viewModel, Shell.FsiEvaluationSession fsiEvaluationSession)
         {
-                        
+            id = 0;            
             rBox = readBox;
             cover = workingCover;
             charts = chartsPanel;
@@ -51,8 +52,9 @@ namespace Infer.IDE
         }
 
         public void run()
-        {
+        {            
             Monitor.Enter(lockCode);
+            Console.WriteLine("Thread {0} started.", id);
             // TODO: implement text highlighting, etc
 
             DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
@@ -98,7 +100,6 @@ namespace Infer.IDE
             Monitor.Exit(lockCode);
             if (activeVars == null) return;
             else execute(activeVars);
-
             
         }
 
@@ -107,7 +108,7 @@ namespace Infer.IDE
             try
             {
                 Monitor.Enter(this);
-                Console.WriteLine("\n****************************************************************\n");
+                Console.WriteLine("Thread {0} now executing.", id);
 
                 DispatcherOperation dCov = cover.Dispatcher.BeginInvoke(
                     new Action(delegate()
@@ -119,58 +120,35 @@ namespace Infer.IDE
  
                 //foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
 
-                /*  
-                 *  F# code evaluation:
-                 */
-                Console.Write("script evaluation...");
                 try
                 {
+                    /*  
+                     *  F# code evaluation:
+                     */
+
+                    // FIXME: Maybe extract the text of the last namespace
+                    // defined, to show in the "Read Box" of the IDE.  
+                    Console.Write("script evaluation...");
                     fsiSession.EvalScript(path);
                     Console.WriteLine(" OK \n");
-                }
-                catch (ThreadAbortException err)
-                {
-                    Monitor.Exit(this);
-                    Console.WriteLine("ReLayout aborted");
-                    return;
-                }
-                catch (Exception err)
-                {
-                    DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
-                        new Action(delegate()
-                        {
-                            rBox.Text = err.Message;
-                            rBox.Text += "/n";
-                            rBox.Text += err.InnerException.Message;                            
-                        }));
 
-                    dRBox.Completed += dRBox_Completed;
+                    updateProgressBar(20);
 
-                    Console.WriteLine(err.Message + "/n");
-                    Console.WriteLine("   " + err.InnerException.Message);
-                }
-                updateProgressBar(20);
-                // FIXME: Maybe extract the text of the last namespace
-                // defined, to show in the "Read Box" of the IDE.  
+                    /* 
+                     * Injection: 
+                     * Infer each variable that is in the active variables list
+                     * Move that to ModelGraph constructor. Be careful when 
+                     * there are more than one dgml files in that case.
+                     */
 
-                /* 
-                    * Injection: 
-                    * Infer each variable that is in the active variables list
-                    * Move that to ModelGraph constructor. Be careful when 
-                    * there are more than one dgml files in that case.
-                    */
-                         
-                // open module (that might be unsafe...?) -- should be fine,
-                // as we are checking the code before compilation - i.e.
-                // it makes sense on its own.
-
-                try
-                {            
+                    // open module (that might be unsafe...?) -- should be fine,
+                    // as we are checking the code before compilation - i.e.
+                    // it makes sense on its own.
                     fsiSession.EvalInteraction("open Tmp");
 
                     string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
                     string pathToDGML = System.IO.Directory.GetCurrentDirectory(); //+ "\\Model.dgml";
-               
+
                     Random r = new Random();
 
                     ///*
@@ -203,10 +181,10 @@ namespace Infer.IDE
                         fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
                         */
 
-                        Console.Write("infering... ");
+                        //Console.Write("infering... ");
 
                         FSharpOption<Shell.FsiValue> val = fsiSession.EvalExpression("try Choice1Of2(" + eName + ".Infer(" + varName + ")) with exn -> Choice2Of2(exn)");
-                        Console.WriteLine(" OK\n");     
+                        //Console.WriteLine(" OK\n");
 
                         if (FSharpOption<Shell.FsiValue>.get_IsSome(val))
                         {
@@ -259,21 +237,36 @@ namespace Infer.IDE
 
                     updateProgressBar(25);
 
-                
+
+                }
+                catch (ThreadAbortException)
+                {
+                    Monitor.Exit(this);
+                    Console.WriteLine("Thread {0} ABORTED.", id);
+                    return;
+                }
+                catch (OperationCanceledException)
+                {
+                    Monitor.Exit(this);
+                    Console.WriteLine("Thread {0} ABORTED.", id);
+                    return;
                 }
                 catch (Exception err)
                 {
                     DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
                         new Action(delegate()
                         {
-                            rBox.Text += err.Message;
+                            rBox.Text = err.Message;
+                            rBox.Text += "\n";
+                            if(err.InnerException != null) 
+                                rBox.Text += err.InnerException.Message;
                         }));
-                    dRBox.Completed += dRBox_Completed;
 
-                    Console.WriteLine("{0}", err.Message);
+                    Console.WriteLine(err.Message + "\n");
+                    if (err.InnerException != null)
+                        Console.WriteLine("   " + err.InnerException.Message);
 
-                    //Console.Write(outStream.ToString());
-
+                    Console.WriteLine("Type of the exception: {0}", err.GetType());
                 }
 
                 //@"c:\temp\MyTest.txt"
@@ -296,15 +289,16 @@ namespace Infer.IDE
                 {
                     Directory.Delete(System.IO.Directory.GetCurrentDirectory() + "\\t", true);
                 }
-                catch (Exception e) { }
+                catch (DirectoryNotFoundException) { }
 
+                Console.WriteLine("Thread {0} finished execution.", id);
                 Console.WriteLine("\n****************************************************************\n");
                 Monitor.Exit(this);
             }
-            catch (ThreadAbortException err)
+            catch (ThreadAbortException)
             {
                 Monitor.Exit(this);
-                Console.WriteLine("ReLayout aborted");
+                Console.WriteLine("Thread {0} ABORTED.", id);
                 Console.WriteLine("\n****************************************************************\n");
                 return;
             }
@@ -312,12 +306,12 @@ namespace Infer.IDE
 
         void dCharts_Completed(object sender, EventArgs e)
         {
-            Console.WriteLine("Charts updated");
+            //Console.WriteLine("Charts updated");
         }
 
         void dRBox_Completed(object sender, EventArgs e)
         {
-            Console.WriteLine("ReadBox updated");
+            //Console.WriteLine("ReadBox updated");
         }
 
         private void drawDistribution(string distribution, string name)

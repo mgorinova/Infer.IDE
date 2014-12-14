@@ -21,6 +21,9 @@ using Microsoft.FSharp.Compiler.Interactive;
 using Microsoft.FSharp.Compiler;
 using Microsoft.FSharp.Core;
 using Microsoft.FSharp.Collections;
+using System.Diagnostics;
+using System.Reactive.Linq;
+using System.Linq;
 
 
 namespace Infer.IDE
@@ -30,6 +33,8 @@ namespace Infer.IDE
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Stopwatch time;
+
         private readonly RefreshThread refreshThreadObject;
         private Thread previousThread;
 
@@ -61,7 +66,9 @@ namespace Infer.IDE
 
             foreach(string a in Strings.assemblies)                
                 fsiSession.EvalInteraction(a);
-                
+
+            time = new Stopwatch();
+            time.Start();
 
             InitializeComponent();
 
@@ -70,9 +77,19 @@ namespace Infer.IDE
             WriteBox.Text = Strings.sprinkler;
 
             refreshThreadObject = new RefreshThread(ReadBox, Cover, Charts, ProgressBar, viewModel, fsiSession);
+
+            var textchanges = Observable.FromEventPattern<TextChangedEventHandler, TextChangedEventArgs>(
+                h => WriteBox.TextChanged += h,
+                h => WriteBox.TextChanged -= h
+                ).Select(x => ((TextBox)x.Sender).Text)
+                 .Throttle(TimeSpan.FromMilliseconds(500))
+                 .ObserveOnDispatcher()
+                 .Subscribe(OnUserChange);
+
+
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        private void OnUserChange(string s)
         {
             if (refreshThreadObject == null) return;
 
@@ -83,6 +100,7 @@ namespace Infer.IDE
                 Monitor.Enter(refreshThreadObject);
 
                 refreshThreadObject.CodeString = WriteBox.Text;
+                refreshThreadObject.Id++;
 
                 previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
                 // The calling thread must be STA(Single-Threaded Apartment), 
@@ -96,6 +114,7 @@ namespace Infer.IDE
             else
             {
                 refreshThreadObject.CodeString = WriteBox.Text;
+                refreshThreadObject.Id++;
 
                 previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
                 // The calling thread must be STA(Single-Threaded Apartment), 
@@ -104,8 +123,13 @@ namespace Infer.IDE
 
                 previousThread.Start();
                 Monitor.Exit(refreshThreadObject);
-            }                     
+            }                    
 
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Console.WriteLine("Text changed");
         }
 
         private void Refresh_Click(object sender, RoutedEventArgs e)
@@ -117,43 +141,7 @@ namespace Infer.IDE
 
         private void Compile_Click(object sender, RoutedEventArgs e)
         {
-            /*code.CodeString = WriteBox.Text;
-            var refreshThread = new Thread(new ThreadStart(code.check));
-
-            refreshThread.SetApartmentState(ApartmentState.STA);
-            refreshThread.Start();*/
-
-            if (!Monitor.TryEnter(refreshThreadObject))
-            {
-                previousThread.Abort();
-
-                Monitor.Enter(refreshThreadObject);
-
-                refreshThreadObject.CodeString = WriteBox.Text;
-
-                previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
-                // The calling thread must be STA(Single-Threaded Apartment), 
-                // because many UI components require this.
-                previousThread.SetApartmentState(ApartmentState.STA);
-
-                previousThread.Start();
-
-                Monitor.Exit(refreshThreadObject);
-
-            }
-            else
-            {
-                refreshThreadObject.CodeString = WriteBox.Text;
-
-                previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
-                // The calling thread must be STA(Single-Threaded Apartment), 
-                // because many UI components require this.
-                previousThread.SetApartmentState(ApartmentState.STA);
-
-                previousThread.Start();
-                Monitor.Exit(refreshThreadObject);
-            }                     
-            
+            OnUserChange("");            
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
