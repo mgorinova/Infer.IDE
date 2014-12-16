@@ -104,7 +104,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Code.cs" />
     <Compile Include="Strings.cs" />
     <Compile Include="RefreshThread.cs" />
     <Compile Include="ViewModel.cs" />

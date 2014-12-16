@@ -85,8 +85,6 @@ namespace Infer.IDE
                  .Throttle(TimeSpan.FromMilliseconds(500))
                  .ObserveOnDispatcher()
                  .Subscribe(OnUserChange);
-
-
         }
 
         private void OnUserChange(string s)
