@@ -50,6 +50,29 @@ namespace Infer.IDE
             vModel = viewModel;
             fsiSession = fsiEvaluationSession;
         }
+        public void click()
+        {
+            //Shell.FsiEvaluationSessionHostConfig fsiConfig = Shell.FsiEvaluationSession.GetDefaultConfiguration();
+            //fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.Some(true));
+
+            Console.WriteLine("1");
+            var pth = @"D:/tmp.fsx";
+            //File.WriteAllText(pth, WriteBox.Text);
+            Console.WriteLine("2");
+            try
+            {
+                Console.WriteLine("3");
+                fsiSession.EvalScript(pth);
+                Console.WriteLine("4");
+
+                fsiSession.EvalInteraction("open Tmp");
+                fsiSession.EvalInteraction("let ie = new InferenceEngine()");
+                fsiSession.EvalInteraction("printfn \"%A\" (ie.Infer(means))");
+
+            }
+            catch (Exception err) { Console.WriteLine("EXCEPTION! " + err.Message + "\n" + err.InnerException.Message); }
+            Console.WriteLine("5");
+        }
 
         public void run()
         {            

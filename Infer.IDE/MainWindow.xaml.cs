@@ -33,8 +33,6 @@ namespace Infer.IDE
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Stopwatch time;
-
         private readonly RefreshThread refreshThreadObject;
         private Thread previousThread;
 
@@ -67,9 +65,6 @@ namespace Infer.IDE
             foreach(string a in Strings.assemblies)                
                 fsiSession.EvalInteraction(a);
 
-            time = new Stopwatch();
-            time.Start();
-
             InitializeComponent();
 
             Cover.Visibility = Visibility.Hidden;
@@ -86,7 +81,7 @@ namespace Infer.IDE
                  .ObserveOnDispatcher()
                  .Subscribe(OnUserChange);
         }
-
+        
         private void OnUserChange(string s)
         {
             if (refreshThreadObject == null) return;
@@ -130,16 +125,10 @@ namespace Infer.IDE
             Console.WriteLine("Text changed");
         }
 
-        private void Refresh_Click(object sender, RoutedEventArgs e)
-        {            
-            Console.WriteLine(paths[0]);
-            //viewModel.ReLayoutGraph(paths[cnt++]);
-            if (cnt == 3) cnt = 0;
-        }
-
         private void Compile_Click(object sender, RoutedEventArgs e)
         {
-            OnUserChange("");            
+            OnUserChange(""); 
+            //refreshThreadObject.click();           
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

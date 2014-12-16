@@ -10,15 +10,19 @@ open System
 
 open MicrosoftResearch.Infer.Distributions
 open MicrosoftResearch.Infer.Models
+open MicrosoftResearch.Infer.Maths
 
 
 let var = Variable.GaussianFromMeanAndVariance(0.0, 1.0)
 
 let gaussian mean variance x = Gaussian.FromMeanAndVariance(mean, variance).GetLogProb x |> Operators.exp
 let gamma shape scale x = Gamma.FromShapeAndScale(shape, scale).GetLogProb x |> Operators.exp
-let beta trueCount falseCount x = Beta(trueCount, falseCount).GetLogProb x |> Operators.exp
-    
+let beta trueCount falseCount x = Beta(trueCount, falseCount).GetLogProb x |> Operators.exp    
 let poisson (mean : float) x = Poisson(mean).GetLogProb x |> Operators.exp
+
+let dirichlet arr x = 
+    let v:Vector = Vector.FromArray(arr)
+    Dirichlet.FromMeanLog(v).GetLogProb x |> Operators.exp
 
 let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) = 
 
@@ -142,6 +146,23 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
                   |> Chart.WithYAxis(LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)
 
         winForm.Child <- new ChartControl(chart)
+
+    | "Dirichlet" ->
+        let floatArr = distType.[1].Split(' ')
+                       |> Array.map (System.Convert.ToDouble)
+
+        // as dirichlet is a multivariate distribution, i is not a float, but a vector... need to think of a clever way to visualise
+        // from different angles or something. Maybe ask Advait?
+        
+        (*let chart = Chart.Line ([for i in 0.0 .. 0.1 .. 10.0 -> (i, (dirichlet floatArr i))], Name = varName)
+                    |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
+                    |> Chart.WithXAxis(Min = 0.0, Max = 10.0, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid)
+                    |> Chart.WithYAxis(Min = 0.0, Max = 10.0, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)*)
+
+        printfn "%A" distribution
+
+    | "Wishart" ->
+        printfn "%A" distribution
 
     (*
     | "ConjugateDirichlet" ->

@@ -34,7 +34,7 @@
                 </Grid.ColumnDefinitions>
 
                 <ScrollViewer Grid.Column="0">
-                    <TextBox x:Name="WriteBox" TextChanged="TextBox_TextChanged" AcceptsReturn="True"/>
+                    <TextBox x:Name="WriteBox" AcceptsReturn="True" TextChanged="TextBox_TextChanged"/>
                 </ScrollViewer>
                 <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
                 <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
@@ -68,7 +68,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Button x:Name="Compile" Grid.Column="0" Width="150" HorizontalAlignment="Center" Click="Compile_Click" Content="Compile"/>
-                <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25"  SelectionChanged="ComboBox_SelectionChanged">
+                <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
                     <ComboBoxItem>Sprinkler</ComboBoxItem>
                     <ComboBoxItem>Distributions</ComboBoxItem>
                     <ComboBoxItem>Learning a Gaussian</ComboBoxItem>

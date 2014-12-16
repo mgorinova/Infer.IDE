@@ -43,16 +43,19 @@
       <HintPath>..\packages\FSharp.Charting.0.90.8\lib\net40\FSharp.Charting.dll</HintPath>
     </Reference>
     <Reference Include="FSharp.Compiler.Service">
-      <HintPath>bin\Debug\FSharp.Compiler.Service.dll</HintPath>
+      <HintPath>..\packages\FSharp.Compiler.Service.0.0.81\lib\net45\FSharp.Compiler.Service.dll</HintPath>
     </Reference>
     <Reference Include="Infer.Compiler">
-      <HintPath>..\Infer.IDE\bin\Debug\infer\Infer.Compiler.dll</HintPath>
+      <HintPath>bin\Debug\infer\Infer.Compiler.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Infer.FSharp">
-      <HintPath>..\Infer.IDE\bin\Debug\infer\Infer.FSharp.dll</HintPath>
+      <HintPath>bin\Debug\infer\Infer.FSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Infer.Runtime">
-      <HintPath>..\Infer.IDE\bin\Debug\infer\Infer.Runtime.dll</HintPath>
+      <HintPath>bin\Debug\infer\Infer.Runtime.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -67,6 +70,7 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
