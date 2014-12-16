@@ -1,0 +1,4 @@
+Unable to cast object of type 'MicrosoftResearch.Infer.Models.User.Model_EP' to
+type 'MicrosoftResearch.Infer.IGeneratedAlgorithm'.
+
+Type of the exception: System.InvalidCastException
