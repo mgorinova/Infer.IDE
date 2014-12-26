@@ -8,6 +8,7 @@ namespace Infer.IDE
     static class Strings
     {
         public static string path = System.IO.Directory.GetCurrentDirectory() + "\\tmp.fsx";
+        public static string curDir = System.IO.Directory.GetCurrentDirectory();
 
         public static string[] assemblies = { 
                                           "#r \"infer\\Infer.Compiler.dll\"", 
@@ -25,6 +26,13 @@ namespace Infer.IDE
                                 "#r \"infer\\Infer.Runtime.dll\"" + Environment.NewLine +
                                 "#r \"infer\\Infer.FSharp.dll\"" + Environment.NewLine +
                                 "open MicrosoftResearch.Infer" + Environment.NewLine +
+                                "open MicrosoftResearch.Infer.Models" + Environment.NewLine +
+                                "open MicrosoftResearch.Infer.Distributions" + Environment.NewLine +
+                                "open MicrosoftResearch.Infer.Factors" + Environment.NewLine +
+                                "open MicrosoftResearch.Infer.FSharp" + Environment.NewLine +
+                                "open MicrosoftResearch.Infer.Maths" + Environment.NewLine;
+
+        public static string namescapses = "open MicrosoftResearch.Infer" + Environment.NewLine +
                                 "open MicrosoftResearch.Infer.Models" + Environment.NewLine +
                                 "open MicrosoftResearch.Infer.Distributions" + Environment.NewLine +
                                 "open MicrosoftResearch.Infer.Factors" + Environment.NewLine +
@@ -192,7 +200,54 @@ let data = Variable.ArrayInit n (fun i -> Variable.SwitchExpr (z.[i]) (fun zi ->
 //ie.ShowFactorGraph <- true
             ";
 
+        public static string backache = @"
 
+let chair = Variable.Bernoulli(0.8)
+let sport = Variable.Bernoulli(0.02)
+
+let worker = Variable.New()
+let back = Variable.New()
+let ache = Variable.New()
+
+begin 
+   use ifc = Variable.If(chair)
+   worker.SetTo(Variable.Bernoulli(0.9))
+   begin 
+      use ifs = Variable.If(sport)
+      back.SetTo(Variable.Bernoulli(0.9))
+   end
+   
+   begin
+      use ifsn = Variable.IfNot(sport)
+      back.SetTo(Variable.Bernoulli(0.2))
+   end
+end
+
+begin
+   use ifcn = Variable.IfNot(chair)
+   worker.SetTo(Variable.Bernoulli(0.01))
+   begin 
+      use ifs = Variable.If(sport)
+      back.SetTo(Variable.Bernoulli(0.9))
+   end
+   
+   begin
+      use ifsn = Variable.IfNot(sport)
+      back.SetTo(Variable.Bernoulli(0.01))
+   end
+end
+
+begin
+   use ifb = Variable.If(back)
+   ache.SetTo(Variable.Bernoulli(0.7))
+end
+
+begin
+   use ifbn = Variable.IfNot(back)
+   ache.SetTo(Variable.Bernoulli(0.1))
+end
+
+";
 
 
 

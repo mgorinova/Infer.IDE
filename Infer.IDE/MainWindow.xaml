@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
         xmlns:local="clr-namespace:Infer.IDE"
+        xmlns:graph="clr-namespace:Backend;assembly=Backend"
         xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"        
         Title="InferIDE" Height="500" Width="1000">
 
@@ -10,101 +11,130 @@
         <ResourceDictionary>
             <local:FadeIn x:Key="fastFadeInTransition" />
             <local:FadeOut x:Key="fastFadeOutTransition" />
+
+            <DataTemplate x:Key="VertexTemplete" DataType="{x:Type graph:ModelVertex}">
+                <StackPanel>
+
+                </StackPanel>
+            </DataTemplate>
+
         </ResourceDictionary>
+
+
+        
     </Window.Resources>
 
     <Grid Margin="2,2,2,2">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="190"/>
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <DockPanel Grid.Row="0" Panel.ZIndex="-1" >
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_New" Click="New_Click"/>
+                    <MenuItem Header="_Open" Click="Open_Click"/>
+                    <MenuItem Header="_Save" Click="Save_Click"/>
+                    <Separator />
+                    <MenuItem Header="_Exit" Click="Exit_Click"/>
+                </MenuItem>
+            </Menu>
+            <TextBox AcceptsReturn="True" />
+        </DockPanel>
+        
+        <Grid Grid.Row= "1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="190"/>
+            </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Name="VisRow" Height="*" />
-                <RowDefinition Height="35"/>
-                <RowDefinition Height="70"/>
-            </Grid.RowDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Name="VisRow" Height="*" />
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="70"/>
+                </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="400" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="400" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <ScrollViewer Grid.Column="0">
-                    <TextBox x:Name="WriteBox" AcceptsReturn="True" TextChanged="TextBox_TextChanged"/>
-                </ScrollViewer>
-                <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
-                <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
-                        Graph="{Binding Graph}"
-                        LayoutAlgorithmType="EfficientSugiyama"
-                        HighlightAlgorithmType="Simple" 
-                        CreationTransition="{x:Null}"
-                        DestructionTransition="{DynamicResource fastFadeOutTransition}"
-                        IsAnimationEnabled="True" AnimationLength="0:0:0.1"                     
-                        AsyncCompute="True"
-                        IsEnabled="{Binding GraphEnabled}"
-                        OverlapRemovalAlgorithmType="FSA"
-                                            >
-                </local:ModelGraphLayout>
-                <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
-                           VerticalAlignment="Stretch" 
-                           Opacity="0.5" Panel.ZIndex="-1"                           
-                           />
-                <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Height}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
+                    <avalonEdit:TextEditor Grid.Column="0"
+                        xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+                        Name="WriteBox" 
+                        FontFamily="Consolas"
+                        ShowLineNumbers="True"                
+                        TextChanged="OnTextChanged" HorizontalScrollBarVisibility="Hidden" >
+                    </avalonEdit:TextEditor>
+                        
+                    <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
+                    <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
+                            Graph="{Binding Graph}"
+                            LayoutAlgorithmType="EfficientSugiyama"
+                            HighlightAlgorithmType="Simple" 
+                            CreationTransition="{x:Null}"
+                            DestructionTransition="{DynamicResource fastFadeOutTransition}"
+                            IsAnimationEnabled="True" AnimationLength="0:0:0.1"                     
+                            AsyncCompute="True"
+                            IsEnabled="{Binding GraphEnabled}"
+                            OverlapRemovalAlgorithmType="FSA"
+                                                >
+                    </local:ModelGraphLayout>
+                    <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
+                               VerticalAlignment="Stretch" 
+                               Opacity="0.5" Panel.ZIndex="-1"                           
+                               />
+                    <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Height}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
 
-                <!--AsyncCompute makes relayout faster and less buggy-->
-                <!--</zoom:ZoomControl> -->
+                    <!--AsyncCompute makes relayout faster and less buggy-->
+                    <!--</zoom:ZoomControl> -->
 
-            </Grid>
+                </Grid>
 
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="250"/>
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="250"/>
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
 
-                <Button x:Name="Compile" Grid.Column="0" Width="150" HorizontalAlignment="Center" Click="Compile_Click" Content="Compile"/>
-                <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
-                    <ComboBoxItem>Sprinkler</ComboBoxItem>
-                    <ComboBoxItem>Distributions</ComboBoxItem>
-                    <ComboBoxItem>Learning a Gaussian</ComboBoxItem>
-                    <ComboBoxItem>Truncated Gaussian</ComboBoxItem>
-                    <ComboBoxItem>Two Coins</ComboBoxItem>
-                    <ComboBoxItem>Mixture of Gaussians</ComboBoxItem>
+                    <Button x:Name="Compile" Grid.Column="0" Width="150" HorizontalAlignment="Center" Click="Compile_Click" Content="Compile" Panel.ZIndex="-1" />
+                    <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
+                        <ComboBoxItem>Sprinkler</ComboBoxItem>
+                        <ComboBoxItem>Distributions</ComboBoxItem>
+                        <ComboBoxItem>Learning a Gaussian</ComboBoxItem>
+                        <ComboBoxItem>Truncated Gaussian</ComboBoxItem>
+                        <ComboBoxItem>Two Coins</ComboBoxItem>
+                        <ComboBoxItem>Mixture of Gaussians</ComboBoxItem>
 
-                </ComboBox>
-                <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <StatusBarItem Width="50">
-                        <Image Name="StatusImage">                            
-                        </Image>
-                    </StatusBarItem>
+                    </ComboBox>
+                    <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <StatusBarItem Width="50">
+                            <Image Name="StatusImage">                            
+                            </Image>
+                        </StatusBarItem>
 
-                    <StatusBarItem>
-                        <TextBlock Width="100" Name="StatusString"/>
-                    </StatusBarItem>
+                        <StatusBarItem>
+                            <TextBlock Width="100" Name="StatusString"/>
+                        </StatusBarItem>
                     
-                    <StatusBarItem HorizontalAlignment="Right" Margin="0,0,20,0">
-                        <ProgressBar Name = "ProgressBar"  Value="0" Width="170" Height="16" ValueChanged="ProgressBar_ValueChanged" />
-                    </StatusBarItem>
-                </StatusBar>
+                        <StatusBarItem HorizontalAlignment="Right" Margin="0,0,20,0">
+                            <ProgressBar Name = "ProgressBar"  Value="0" Width="170" Height="16" ValueChanged="ProgressBar_ValueChanged" />
+                        </StatusBarItem>
+                    </StatusBar>
 
 
+                </Grid>
 
-            </Grid>
+                <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True"></TextBox>
+            </Grid>            
 
-            <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True">
-
-            </TextBox>
-
+            <ScrollViewer Grid.Column="1" Grid.Row="1">
+                <StackPanel x:Name="Charts"/>
+            </ScrollViewer>
         </Grid>
-
-        <ScrollViewer Grid.Column="1" Grid.Row="0">
-            <StackPanel x:Name="Charts"/>
-        </ScrollViewer>
-
     </Grid>
 </Window>

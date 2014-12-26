@@ -17,6 +17,8 @@ using System.Windows.Shapes;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media.Animation;
+using ICSharpCode.AvalonEdit;
+using Backend;
 
 
 namespace Infer.IDE
@@ -27,6 +29,7 @@ namespace Infer.IDE
         private string code;
         private int id;
         private Shell.FsiEvaluationSession fsiSession;
+        private TextEditor wBox;
         private TextBox rBox;
         private Rectangle cover;
         private StackPanel charts;
@@ -39,10 +42,11 @@ namespace Infer.IDE
         public int Id { get { return id; } set { id = value; } }
         //private string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
 
-        public RefreshThread(TextBox readBox, Rectangle workingCover,
+        public RefreshThread(TextEditor writeBox, TextBox readBox, Rectangle workingCover,
                              StackPanel chartsPanel, ProgressBar progressBar, ViewModel viewModel, Shell.FsiEvaluationSession fsiEvaluationSession)
         {
-            id = 0;            
+            id = 0;
+            wBox = writeBox;
             rBox = readBox;
             cover = workingCover;
             charts = chartsPanel;
@@ -114,6 +118,9 @@ namespace Infer.IDE
                        rBox.Text += err.Message;
                    }));
                 dRBox.Completed += dRBox_Completed;
+
+                int offset = 2;
+                int length = 10;
 
                 Console.WriteLine("{0}", err.Message);
                 Monitor.Exit(lockCode);
@@ -228,7 +235,9 @@ namespace Infer.IDE
                                 }));
                             dRBox.Completed += dRBox_Completed;
 
-                            if (!added.Contains(varName))
+                            var varNode = vModel.findNodeByName(varName);
+
+                            if (varNode == null)
                             {
                                 // Update the graph accordingly and get set of connected vertices as a result                            
                                 var connectedComponent = vModel.Update(pathToDGML + "\\Model.dgml");
@@ -245,11 +254,14 @@ namespace Infer.IDE
                                 fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
 
                                 added.UnionWith(connectedComponent);
+
+                                varNode = vModel.findNodeByName(varName);
+
                             }
 
-                            vModel.UpdateDistribution(varName, distribution);
+                            vModel.UpdateDistribution(varNode, distribution);
 
-                            drawDistribution(distribution, varName);
+                            drawDistribution(varNode, distribution);
                             // TODO: change that to "createXAMLChild" or something. Assosiate the
                             // element with the coressponding node in the ModelGraph, so a 
                             // "node expansion" visualisation can be implemented on a later stage.
@@ -337,15 +349,18 @@ namespace Infer.IDE
             //Console.WriteLine("ReadBox updated");
         }
 
-        private void drawDistribution(string distribution, string name)
+        private void drawDistribution(ModelVertex varNode, string distribution)
         {
             DispatcherOperation dCharts = charts.Dispatcher.BeginInvoke(
                 new Action(delegate()
                 {
                     var wfh = new WindowsFormsHost();
                     wfh.Height = 150.0;
+
+                    varNode.WinHost = wfh;
+
                     charts.Children.Add(wfh);
-                    Distributions.draw(wfh, distribution, name);
+                    Distributions.draw(wfh, distribution, varNode.Label);
                 }));
 
             dCharts.Completed += dCharts_Completed;

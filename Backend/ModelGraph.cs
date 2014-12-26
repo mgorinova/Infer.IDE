@@ -33,7 +33,7 @@ namespace Backend
             array = false;
         }
 
-        public ModelVertex(int i, string l, NodeType t, StackPanel hostsParent)
+        /*public ModelVertex(int i, string l, NodeType t, StackPanel hostsParent)
         {
             id = i;
             label = l;
@@ -44,7 +44,7 @@ namespace Backend
             winHost = new WindowsFormsHost();
             winHost.Height = 200.0;
             hostsParent.Children.Add(winHost);
-        }
+        }*/
 
         public override string ToString()
         {
@@ -54,7 +54,7 @@ namespace Backend
         public int Id { get{ return id; } }
         public string Label { get { return label; } }
         public NodeType Type { get { return type; } }
-        public WindowsFormsHost WinHost { get { return winHost; } }
+        public WindowsFormsHost WinHost { get { return winHost; } set { winHost = value; } }
         public string Distribution { get { return distribution; } set { distribution = value; } }
         public bool Observed { get { return observed; } set { observed = value; } }
         public bool Array { get { return array; } set { array = value; } }
@@ -103,6 +103,8 @@ namespace Backend
             }
            
         }
+
+        
 
         private string ParseLabel(string l)
         {

@@ -24,6 +24,13 @@ using Microsoft.FSharp.Collections;
 using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Linq;
+using ICSharpCode.AvalonEdit;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
+using System.Xml;
+using ICSharpCode.AvalonEdit.Rendering;
+using ICSharpCode.AvalonEdit.Document;
+using Microsoft.Win32;
 
 
 namespace Infer.IDE
@@ -45,6 +52,9 @@ namespace Infer.IDE
         private StringReader inStream;
         private StringWriter outStream;
         private StringWriter errStream;
+
+        private readonly TextMarkerService textMarkerService;
+
         public MainWindow()
         {
             viewModel = new ViewModel();
@@ -67,16 +77,32 @@ namespace Infer.IDE
 
             InitializeComponent();
 
+            #region Initialise TextEditor details
+            var Options = new TextEditorOptions();
+            Options.ConvertTabsToSpaces = true;
+            WriteBox.Options = Options;
+            WriteBox.SyntaxHighlighting = ResourceLoader.LoadHighlightingDefinition("FSharp.xshd");
+
+            textMarkerService = new TextMarkerService(WriteBox);
+            TextView textView = WriteBox.TextArea.TextView;
+            textView.BackgroundRenderers.Add(textMarkerService);
+            textView.LineTransformers.Add(textMarkerService);
+            textView.Services.AddService(typeof(TextMarkerService), textMarkerService);
+            #endregion
+
             Cover.Visibility = Visibility.Hidden;
             LoadCodeBox.SelectedIndex = 0;
             WriteBox.Text = Strings.sprinkler;
 
-            refreshThreadObject = new RefreshThread(ReadBox, Cover, Charts, ProgressBar, viewModel, fsiSession);
+            //int offset = WriteBox.Document.GetOffset(new TextLocation(3, 20));
+            //textMarkerService.Create(offset, 20, "much wow");
 
-            var textchanges = Observable.FromEventPattern<TextChangedEventHandler, TextChangedEventArgs>(
+            refreshThreadObject = new RefreshThread(WriteBox, ReadBox, Cover, Charts, ProgressBar, viewModel, fsiSession);
+
+            var textchanges = Observable.FromEventPattern<EventHandler, EventArgs>(
                 h => WriteBox.TextChanged += h,
                 h => WriteBox.TextChanged -= h
-                ).Select(x => ((TextBox)x.Sender).Text)
+                ).Select(x => ((TextEditor)x.Sender).Text)
                  .Throttle(TimeSpan.FromMilliseconds(500))
                  .ObserveOnDispatcher()
                  .Subscribe(OnUserChange);
@@ -164,5 +190,40 @@ namespace Infer.IDE
 
         }
 
+        private void OnTextChanged(object sender, System.EventArgs e)
+        {
+            Console.WriteLine("Text Changed");
+        }
+
+        private void New_Click(object sender, RoutedEventArgs e)
+        {
+            WriteBox.Text = Strings.namescapses;
+        }
+        private void Open_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog();
+            dialog.FileName = "Document";
+            dialog.DefaultExt = ".fsx";
+            dialog.Filter = "F# Script Files (.fsx)|*.fsx";
+
+            Nullable<bool> result = dialog.ShowDialog();
+
+            if (result == true) WriteBox.Text = File.ReadAllText(dialog.FileName);
+        }
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new SaveFileDialog();
+            dialog.FileName = "Document";
+            dialog.DefaultExt = ".fsx";
+            dialog.Filter = "F# Script Files (.fsx)|*.fsx";
+
+            Nullable<bool> result = dialog.ShowDialog();
+
+            if (result == true) File.WriteAllText(dialog.FileName, WriteBox.Text);
+        }
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }

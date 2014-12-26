@@ -76,19 +76,18 @@ namespace Infer.IDE
             }
         }
 
-        internal void UpdateDistribution(string varName, string distribution)
+        internal void UpdateDistribution(ModelVertex varNode, string distribution)
         {          
-            var v = Graph.FindVertexByName(varName);
-            if (v != null)
+            if (varNode != null)
             {
-                v.Distribution = distribution;
-                v.Observed = false;
+                varNode.Distribution = distribution;
+                varNode.Observed = false;
             }
             else
             {
                 // Means the variable has been observed.
                 // TODO: implement some kind of handling... 
-                throw new Exception(varName + " is an observed variable");
+                throw new Exception("something went wrong... observed var???");
             }
         }
 
@@ -97,6 +96,11 @@ namespace Infer.IDE
             Graph = new ModelGraph();
         }
 
+
+        internal ModelVertex findNodeByName(string varName)
+        {
+            return graph.FindVertexByName(varName);
+        }
     }
 
     public class FadeOut : FadeTransition
