@@ -261,7 +261,7 @@ namespace Infer.IDE
 
                             vModel.UpdateDistribution(varNode, distribution);
 
-                            drawDistribution(varNode, distribution);
+                            //drawDistribution(varNode, distribution);
                             // TODO: change that to "createXAMLChild" or something. Assosiate the
                             // element with the coressponding node in the ModelGraph, so a 
                             // "node expansion" visualisation can be implemented on a later stage.
@@ -358,8 +358,8 @@ namespace Infer.IDE
                     wfh.Height = 150.0;
 
                     varNode.WinHost = wfh;
-
-                    charts.Children.Add(wfh);
+                    
+                    //charts.Children.Add(wfh);
                     Distributions.draw(wfh, distribution, varNode.Label);
                 }));
 

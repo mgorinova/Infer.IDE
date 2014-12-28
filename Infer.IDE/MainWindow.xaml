@@ -12,15 +12,68 @@
             <local:FadeIn x:Key="fastFadeInTransition" />
             <local:FadeOut x:Key="fastFadeOutTransition" />
 
-            <DataTemplate x:Key="VertexTemplete" DataType="{x:Type graph:ModelVertex}">
+            <DataTemplate x:Key="ExpandedNode" DataType="{x:Type graph:ModelVertex}">
                 <StackPanel>
+                    <Border Background="White" BorderBrush="Firebrick">
+                        <ContentControl Content="{Binding Path=WinHost, Mode=TwoWay}" Height="100" Width="100"/>
+                    </Border>
+                </StackPanel>
+                
+                <!--"{Binding Path=Label, Mode=OneWay}"-->
+                
+               <!-- <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding Observed}" Value="true">
+                        <Setter TargetName="Chart" Property="Background" Value="Cyan" />
+                    </DataTrigger>
+                </DataTemplate.Triggers> -->
+            </DataTemplate>
 
+            <DataTemplate x:Key="CollapsedNode" DataType="{x:Type graph:ModelVertex}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock ToolTip="{Binding Path=Distribution, Mode=OneWay}" Text="{Binding Path=Label, Mode=OneWay}"/>
                 </StackPanel>
             </DataTemplate>
 
+            <DataTemplate x:Key="HeaderWhenExpanded" x:Name="HeaderWhenExpanded"/>
+
+            <Style TargetType="{x:Type graphsharp:VertexControl}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type graphsharp:VertexControl}">
+
+                            <Border BorderBrush="BlanchedAlmond" 
+                                Background="White"
+							    BorderThickness="0.5"
+							    CornerRadius="20,20,20,20"                          
+                                >
+                                <!--="Border_MouseLeftButtonDown" 
+                                MouseEnter="StackPanel_MouseEnter" 
+                                MouseLeave="StackPanel_MouseLeave"-->
+
+                                <Expander ExpandDirection="Right"
+                                      IsExpanded="False"
+                                      Content="{TemplateBinding Vertex}"
+                                      ContentTemplate="{StaticResource ExpandedNode}"
+                                      Header="{TemplateBinding Vertex}" 
+                                      HeaderTemplate="{StaticResource CollapsedNode}" 
+                                      Foreground="Black" IsHitTestVisible="True" 
+                                      Expanded="Expander_Expanded" Collapsed="Expander_Collapsed" 
+                                      >
+                                </Expander>
+
+                                <!-- Nice shadow effect:
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="2" Color="LightGray" 
+                                    Opacity="0.3" Direction="315"/>
+                            </Border.Effect>-->
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+
         </ResourceDictionary>
-
-
         
     </Window.Resources>
 
@@ -133,7 +186,7 @@
             </Grid>            
 
             <ScrollViewer Grid.Column="1" Grid.Row="1">
-                <StackPanel x:Name="Charts"/>
+                <StackPanel Orientation="Vertical" x:Name="Charts"/>
             </ScrollViewer>
         </Grid>
     </Grid>

@@ -31,6 +31,7 @@ using System.Xml;
 using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Document;
 using Microsoft.Win32;
+using Backend;
 
 
 namespace Infer.IDE
@@ -224,6 +225,35 @@ namespace Infer.IDE
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void Expander_Expanded(object sender, RoutedEventArgs e)
+        {
+            Expander expander = (Expander)sender;
+            ModelVertex node = (ModelVertex)expander.Content;
+
+            Console.WriteLine("label {0}, distribution {1}", node.Label, node.Distribution);
+
+            WindowsFormsHost wfh = new WindowsFormsHost();
+            wfh.Height = 100.0;
+
+            node.WinHost = wfh;
+
+            //Charts.Children.Add(wfh);
+            Distributions.draw(wfh, node.Distribution, node.Label);
+
+            expander.Header = null;
+
+            viewModel.ReLayoutGraph();
+            
+        }
+
+        private void Expander_Collapsed(object sender, RoutedEventArgs e)
+        {
+            Expander expander = (Expander)sender;
+            ModelVertex node = (ModelVertex)expander.Content;
+
+            expander.Header = node;
         }
     }
 }

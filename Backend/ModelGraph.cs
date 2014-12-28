@@ -33,6 +33,11 @@ namespace Backend
             array = false;
         }
 
+        public WindowsFormsHost Chart
+        {
+            get { Console.WriteLine("getting chart!"); return new WindowsFormsHost() { Child = winHost.Child }; } 
+        }
+
         /*public ModelVertex(int i, string l, NodeType t, StackPanel hostsParent)
         {
             id = i;
