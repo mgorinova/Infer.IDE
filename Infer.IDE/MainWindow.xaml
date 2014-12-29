@@ -4,77 +4,240 @@
         xmlns:graphsharp="clr-namespace:GraphSharp.Controls;assembly=GraphSharp.Controls"
         xmlns:local="clr-namespace:Infer.IDE"
         xmlns:graph="clr-namespace:Backend;assembly=Backend"
-        xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"        
+        xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"
+        xmlns:WPFExtensions_AttachedBehaviours="clr-namespace:WPFExtensions.AttachedBehaviours;assembly=WPFExtensions"
+        xmlns:Converters="clr-namespace:GraphSharp.Converters;assembly=GraphSharp.Controls"
         Title="InferIDE" Height="500" Width="1000">
 
-    <Window.Resources>
+    <Window.Resources>        
         <ResourceDictionary>
             <local:FadeIn x:Key="fastFadeInTransition" />
             <local:FadeOut x:Key="fastFadeOutTransition" />
 
-            <DataTemplate x:Key="ExpandedNode" DataType="{x:Type graph:ModelVertex}">
-                <StackPanel>
-                    <Border Background="White" BorderBrush="Firebrick">
-                        <ContentControl Content="{Binding Path=WinHost, Mode=TwoWay}" Height="100" Width="100"/>
-                    </Border>
-                </StackPanel>
-                
-                <!--"{Binding Path=Label, Mode=OneWay}"-->
-                
-               <!-- <DataTemplate.Triggers>
-                    <DataTrigger Binding="{Binding Observed}" Value="true">
-                        <Setter TargetName="Chart" Property="Background" Value="Cyan" />
-                    </DataTrigger>
-                </DataTemplate.Triggers> -->
-            </DataTemplate>
+            <LinearGradientBrush x:Key="NormalBrush" EndPoint="0,1" StartPoint="0,0">
+                <GradientStop Color="#EEE" Offset="0.0"/>
+                <GradientStop Color="#CCC" Offset="1.0"/>
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="EnteredBrush" EndPoint="0,1" StartPoint="0,0">
+                <GradientStop Color="#BBB" Offset="0.0"/>
+                <GradientStop Color="#EEE" Offset="0.1"/>
+                <GradientStop Color="#EEE" Offset="0.9"/>
+                <GradientStop Color="#FFF" Offset="1.0"/>
+            </LinearGradientBrush>
+            <SolidColorBrush x:Key="LeaveBrush" Color="#444"/>
+            <LinearGradientBrush x:Key="MouseOverBrush" EndPoint="0,1" StartPoint="0,0">
+                <GradientStop Color="DarkCyan" Offset="0.0"/>
+                <GradientStop Color="Cyan" Offset="1.0"/>
+            </LinearGradientBrush>
 
-            <DataTemplate x:Key="CollapsedNode" DataType="{x:Type graph:ModelVertex}">
-                <StackPanel Orientation="Horizontal">
+
+            <DataTemplate x:Key="NodeTemplate" DataType="{x:Type graph:ModelVertex}">
+                <!--<Border x:Name="Border"
+                        BorderBrush="{Binding Path=BorderBrush, Mode=OneWay}"
+                        Background="Transparent"
+						BorderThickness="2.0"
+						CornerRadius="20,20,20,20" Padding="5">-->
+                    
                     <TextBlock ToolTip="{Binding Path=Distribution, Mode=OneWay}" Text="{Binding Path=Label, Mode=OneWay}"/>
-                </StackPanel>
+
+                    <!--<Border.Effect>
+                        <DropShadowEffect BlurRadius="2" Color="LightGray" 
+                        Opacity="0.3" Direction="315"/>
+                    </Border.Effect>
+
+                </Border>-->
             </DataTemplate>
 
-            <DataTemplate x:Key="HeaderWhenExpanded" x:Name="HeaderWhenExpanded"/>
+            <!--Green: FF1DBA00
+                Red: FFD01908
+                Yellow: FFD6A51C
+            -->            
+            <!--<SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />-->
+            <SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="#FF418CF0" />
+            <SolidColorBrush x:Key="HighlightedVertexBackgroundBrush" Color="Transparent"  />
+            <SolidColorBrush x:Key="HighlightedVertexForegroundBrush" Color="Black"/>
+            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBorderBrush" Color="#FFD01908" />
+            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBackgroundBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBorderBrush" Color="#FF1DBA00" />
+            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBackgroundBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="HighlightedEdgeBrush" Color="#FF418CF0" />
+            <SolidColorBrush x:Key="SemiHighlightedInEdgeBrush" Color="#FFD01908" />
+            <SolidColorBrush x:Key="SemiHighlightedOutEdgeBrush" Color="#FF1DBA00" />
+            
+            <Style x:Key="Border" TargetType="{x:Type Border}">
+                <Setter Property="CornerRadius" Value="20"/>
+                
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Type}" Value="ArrayVariable">
+                        <Setter Property="CornerRadius" Value="0"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Type}" Value="IntermediateArrayVariable">
+                        <Setter Property="CornerRadius" Value="0"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
 
+
+            <!-- VERTEX CONTROL -->
             <Style TargetType="{x:Type graphsharp:VertexControl}">
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type graphsharp:VertexControl}">
-
-                            <Border BorderBrush="BlanchedAlmond" 
-                                Background="White"
-							    BorderThickness="0.5"
-							    CornerRadius="20,20,20,20"                          
-                                >
-                                <!--="Border_MouseLeftButtonDown" 
-                                MouseEnter="StackPanel_MouseEnter" 
-                                MouseLeave="StackPanel_MouseLeave"-->
-
-                                <Expander ExpandDirection="Right"
-                                      IsExpanded="False"
-                                      Content="{TemplateBinding Vertex}"
-                                      ContentTemplate="{StaticResource ExpandedNode}"
-                                      Header="{TemplateBinding Vertex}" 
-                                      HeaderTemplate="{StaticResource CollapsedNode}" 
-                                      Foreground="Black" IsHitTestVisible="True" 
-                                      Expanded="Expander_Expanded" Collapsed="Expander_Collapsed" 
-                                      >
-                                </Expander>
-
-                                <!-- Nice shadow effect:
-                            <Border.Effect>
-                                <DropShadowEffect BlurRadius="2" Color="LightGray" 
-                                    Opacity="0.3" Direction="315"/>
-                            </Border.Effect>-->
+                            <Border Background="{TemplateBinding Background}" 
+							        BorderBrush="{TemplateBinding BorderBrush}" 
+							        BorderThickness="{TemplateBinding BorderThickness}"
+							        Style="{StaticResource Border}"
+							        Padding="5">
+                                <ContentControl Content="{TemplateBinding Vertex}"
+                                            ContentTemplate="{StaticResource NodeTemplate}"  />                                
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+                <Setter Property="graphsharp:GraphElementBehaviour.HighlightTrigger" Value="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Self}}"/>
+                <Setter Property="WPFExtensions_AttachedBehaviours:DragBehaviour.IsDragEnabled" Value="True"/>
+                <Setter Property="WPFExtensions_AttachedBehaviours:DragBehaviour.X" Value="{Binding Path=(graphsharp:GraphCanvas.X), Mode=TwoWay, RelativeSource={RelativeSource Self}}"/>
+                <Setter Property="WPFExtensions_AttachedBehaviours:DragBehaviour.Y" Value="{Binding Path=(graphsharp:GraphCanvas.Y), Mode=TwoWay, RelativeSource={RelativeSource Self}}"/>
+                <!--Idle-->
+                <Setter Property="Background" Value="Transparent"/> 
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="BorderThickness" Value="3,1,3,1"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Type}" Value="ArrayVariable">
+                        <Setter Property="BorderBrush" Value="#FFAAC7EC"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Type}" Value="IntermediateArrayVariable">
+                        <Setter Property="BorderBrush" Value="#FFC5D4E6"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Type}" Value="IntermediateVariable">
+                        <Setter Property="Foreground" Value="DarkGray"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Type}" Value="IntermediateArrayVariable">
+                        <Setter Property="Foreground" Value="DarkGray"/>
+                    </DataTrigger>
+
+                    <!--Mouse Over-->
+                    <Trigger Property="graphsharp:GraphElementBehaviour.IsHighlighted" Value="True">
+                        <Setter Property="BorderBrush" Value="{StaticResource HighlightedVertexBorderBrush}"/>
+                        <Setter Property="Background" Value="{StaticResource HighlightedVertexBackgroundBrush}"/>
+                    </Trigger>
+                    <!--Mouse Over A Neighbour-->
+                    <Trigger Property="graphsharp:GraphElementBehaviour.IsSemiHighlighted" Value="True">
+                        <Setter Property="BorderBrush" Value="{StaticResource HighlightedVertexBorderBrush}"/>
+                        <Setter Property="Background" Value="{StaticResource HighlightedVertexBackgroundBrush}"/>
+                    </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="graphsharp:GraphElementBehaviour.IsSemiHighlighted" Value="True"/>
+                            <Condition Property="graphsharp:GraphElementBehaviour.SemiHighlightInfo" Value="Source"/>
+                        </MultiTrigger.Conditions>
+                        <Setter Property="BorderBrush" Value="{StaticResource SemiHighlightedSourceVertexBorderBrush}"/>
+                        <Setter Property="Background" Value="{StaticResource SemiHighlightedSourceVertexBackgroundBrush}"/>
+                    </MultiTrigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="graphsharp:GraphElementBehaviour.IsSemiHighlighted" Value="True"/>
+                            <Condition Property="graphsharp:GraphElementBehaviour.SemiHighlightInfo" Value="Target"/>
+                        </MultiTrigger.Conditions>
+                        <Setter Property="BorderBrush" Value="{StaticResource SemiHighlightedTargetVertexBorderBrush}"/>
+                        <Setter Property="Background" Value="{StaticResource SemiHighlightedTargetVertexBackgroundBrush}"/>
+                    </MultiTrigger>
+                </Style.Triggers>
             </Style>
 
+            <Converters:EdgeRouteToPathConverter x:Key="routeToPathConverter" />
+            
+            <!-- EDGE CONTROL -->
+            <Style TargetType="{x:Type graphsharp:EdgeControl}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type graphsharp:EdgeControl}">
+                            <Path Stroke="{TemplateBinding Foreground}"
+                          StrokeThickness="{TemplateBinding StrokeThickness}"
+                          MinWidth="1"
+                          MinHeight="1"
+                          ToolTip="{TemplateBinding ToolTip}"
+                          x:Name="edgePath">
+                                <Path.Data>
+                                    <PathGeometry>
+                                        <PathGeometry.Figures>
+                                            <MultiBinding Converter="{StaticResource routeToPathConverter}">
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Source.(graphsharp:GraphCanvas.X)" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Source.(graphsharp:GraphCanvas.Y)" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Source.ActualWidth" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Source.ActualHeight" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Target.(graphsharp:GraphCanvas.X)" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Target.(graphsharp:GraphCanvas.Y)" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Target.ActualWidth" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="Target.ActualHeight" />
+                                                <Binding RelativeSource="{RelativeSource TemplatedParent}"
+                                                 Path="RoutePoints" />
+                                            </MultiBinding>
+                                        </PathGeometry.Figures>
+                                    </PathGeometry>
+                                </Path.Data>
+                            </Path>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="graphsharp:GraphElementBehaviour.HighlightTrigger"
+                Value="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" />
+                <Setter Property="MinWidth"
+                Value="1" />
+                <Setter Property="MinHeight"
+                Value="1" />
+                <Setter Property="Background"
+                Value="Red" />
+                <Setter Property="Foreground"
+                Value="Silver" />
+                <Setter Property="Opacity"
+                Value="0.5" />
+                <Style.Triggers>
+                    <Trigger Property="graphsharp:GraphElementBehaviour.IsHighlighted"
+                     Value="True">
+                        <Setter Property="Foreground"
+                        Value="{DynamicResource HighlightedEdgeBrush}" />
+                    </Trigger>
+                    <Trigger Property="graphsharp:GraphElementBehaviour.IsSemiHighlighted"
+                     Value="True">
+                        <Setter Property="Foreground"
+                        Value="{DynamicResource HighlightedEdgeBrush}" />
+                    </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="graphsharp:GraphElementBehaviour.IsSemiHighlighted"
+                               Value="True" />
+                            <Condition Property="graphsharp:GraphElementBehaviour.SemiHighlightInfo"
+                               Value="InEdge" />
+                        </MultiTrigger.Conditions>
+                        <Setter Property="Foreground"
+                        Value="{DynamicResource SemiHighlightedInEdgeBrush}" />
+                    </MultiTrigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="graphsharp:GraphElementBehaviour.IsSemiHighlighted"
+                               Value="True" />
+                            <Condition Property="graphsharp:GraphElementBehaviour.SemiHighlightInfo"
+                               Value="OutEdge" />
+                        </MultiTrigger.Conditions>
+                        <Setter Property="Foreground"
+                        Value="{DynamicResource SemiHighlightedOutEdgeBrush}" />
+                    </MultiTrigger>
+                </Style.Triggers>
+            </Style>
 
         </ResourceDictionary>
-        
     </Window.Resources>
 
     <Grid Margin="2,2,2,2">
@@ -133,9 +296,8 @@
                             IsAnimationEnabled="True" AnimationLength="0:0:0.1"                     
                             AsyncCompute="True"
                             IsEnabled="{Binding GraphEnabled}"
-                            OverlapRemovalAlgorithmType="FSA"
-                                                >
-                    </local:ModelGraphLayout>
+                            OverlapRemovalAlgorithmType="FSA" />
+
                     <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
                                VerticalAlignment="Stretch" 
                                Opacity="0.5" Panel.ZIndex="-1"                           

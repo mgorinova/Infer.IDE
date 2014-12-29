@@ -9,10 +9,13 @@ namespace Backend
     public enum NodeType
     {
         Variable = 0,
-        Distribution = 1,
-        ObservedVariable = 2,
-        Factor = 3,
-        Other = 4
+        ArrayVariable = 1,
+        IntermediateVariable = 2,
+        ObservedVariable = 3,
+        IntermediateArrayVariable = 4,
+        Distribution = 5,        
+        Factor = 6,
+        Other = 7
     }
 
     

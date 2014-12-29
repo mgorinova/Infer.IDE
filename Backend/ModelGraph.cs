@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Windows.Forms.Integration;
 using QuickGraph;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Backend
 {
@@ -13,24 +14,22 @@ namespace Backend
     public class ModelVertex
     {
         private int id;
-        private string label; 
+        private string label;
+        private string programLabel;
         private NodeType type;
 
         private string distribution;
 
         private bool observed;
-
-        private bool array;
-
+        
         private WindowsFormsHost winHost;
 
         public ModelVertex(int i, string l, NodeType t)
         {
             id = i;
             label = l;
+            programLabel = ParseLabel(l);
             type = t;
-
-            array = false;
         }
 
         public WindowsFormsHost Chart
@@ -56,13 +55,26 @@ namespace Backend
             return string.Format("{0}", Label);
         }
 
+        private string ParseLabel(string l)
+        {
+            // FIXME: hmm, that might break (as well as the whole concept). 
+            // Take a look on the "Mixture of Gaussians" example - 
+            // we have several "array" nodes, all with the same "programLabel" 
+
+            string[] splitArr = new string[] { @"[" };
+            var sub = l.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
+            if (sub.Length > 1) Console.WriteLine("Split in {0} and {1}", sub[0], sub[1]);
+            return sub[0];
+        }
+
         public int Id { get{ return id; } }
         public string Label { get { return label; } }
+        public string ProgramLabel { get { return programLabel; } }
         public NodeType Type { get { return type; } }
         public WindowsFormsHost WinHost { get { return winHost; } set { winHost = value; } }
         public string Distribution { get { return distribution; } set { distribution = value; } }
         public bool Observed { get { return observed; } set { observed = value; } }
-        public bool Array { get { return array; } set { array = value; } }
     }
     
 
@@ -86,11 +98,10 @@ namespace Backend
             foreach (Node n in g.Nodes)
             {
                 int id = ParseID(n.Id);
-                string label = ParseLabel(n.Label);
+                string label = n.Label;
                 NodeType type = Utils.ClassifyNode(n);
 
                 ModelVertex add = new ModelVertex(id, label, type);
-                if (label != n.Label) add.Array = true;
 
                 this.AddVertex(add);
             }
@@ -109,16 +120,7 @@ namespace Backend
            
         }
 
-        
-
-        private string ParseLabel(string l)
-        {
-            string[] splitArr = new string[] { @"[" };
-            var sub = l.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
-            
-            if(sub.Length > 1) Console.WriteLine("Split in {0} and {1}", sub[0], sub[1]);
-            return sub[0];
-        }
+       
 
         #region Other Constructors
         public ModelGraph() { }
@@ -146,7 +148,7 @@ namespace Backend
         {
             foreach (ModelVertex v in this.Vertices)
             {
-                if (v.Label == name) return v;
+                if (v.ProgramLabel == name) return v;
             }
 
             //throw new Exception("Node with name " + name + " doesn't exist in the graph.");

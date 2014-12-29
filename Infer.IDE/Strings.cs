@@ -193,7 +193,7 @@ let _ = z.InitialiseTo(Distribution.Array(zinit))
 let data = Variable.ArrayInit n (fun i -> Variable.SwitchExpr (z.[i]) (fun zi -> Variable.VectorGaussianFromMeanAndPrecision(means.[zi], precs.[zi])))
 
 // Binding the data
-//data.ObservedValue <- GenerateData(n.SizeAsInt)
+data.ObservedValue <- GenerateData(n.SizeAsInt)
 
 // The inference
 //let ie = InferenceEngine(VariationalMessagePassing())

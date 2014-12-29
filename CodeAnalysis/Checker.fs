@@ -70,6 +70,9 @@ let check location input =
                         let innerType = t.Substring(44)
                         addName (expression.Range) (symbol.CompiledName) 
                         filter ds ((symbol.CompiledName, "Variable", innerType)::acc)
+                    elif(t.StartsWith("type MicrosoftResearch.Infer.Models.Range")) then 
+                        addName (expression.Range) (symbol.CompiledName)
+                        filter ds acc
                     elif(t.StartsWith("type MicrosoftResearch.Infer.InferenceEngine")) then
                         filter ds acc
                     else filter ds acc                

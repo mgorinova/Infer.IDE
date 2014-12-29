@@ -20,7 +20,18 @@ namespace Backend
                     {
                         case "#ff0000ff":
                             if (string.Equals(n.NodeRadius, "100"))
+                            {
                                 type = NodeType.Variable;
+                                if (n.Label.Contains("[")) type = NodeType.ArrayVariable;
+                                if (n.Label.StartsWith("v"))
+                                    if (n.Label.StartsWith("vbool") ||
+                                       n.Label.StartsWith("vdouble") ||
+                                       n.Label.StartsWith("vint"))
+                                    {
+                                        if (type == NodeType.ArrayVariable) type = NodeType.IntermediateArrayVariable;
+                                        else type = NodeType.IntermediateVariable;
+                                    }
+                            }
                             else
                                 type = NodeType.ObservedVariable;
                             break;
@@ -54,7 +65,11 @@ namespace Backend
 
             foreach(ModelVertex v in enumerable)
             {
-                if (v.Type == NodeType.Variable || v.Type == NodeType.ObservedVariable)
+                if (v.Type == NodeType.Variable ||
+                    v.Type == NodeType.ObservedVariable ||
+                    v.Type == NodeType.ArrayVariable ||
+                    v.Type == NodeType.IntermediateVariable ||
+                    v.Type == NodeType.IntermediateArrayVariable)
                     m.AddVertex(v);                   
             }            
         }
@@ -82,8 +97,14 @@ namespace Backend
                     // If current neighbour is a variable, we've reached the 
                     // desired depth and we don't need to go any further.
                     // Add the desired edge: v to curEdge.Target.
-                    if (curEdge.Target.Type == NodeType.Variable || curEdge.Target.Type == NodeType.ObservedVariable)
+                    if (curEdge.Target.Type == NodeType.Variable || 
+                        curEdge.Target.Type == NodeType.ObservedVariable || 
+                        curEdge.Target.Type == NodeType.ArrayVariable ||
+                        curEdge.Target.Type == NodeType.IntermediateVariable ||
+                        curEdge.Target.Type == NodeType.IntermediateArrayVariable) 
+                        
                         m.AddEdge(new ModelEdge(v, curEdge.Target));
+                        
 
                     else
                     {

@@ -248,12 +248,6 @@ namespace Infer.IDE
             
         }
 
-        private void Expander_Collapsed(object sender, RoutedEventArgs e)
-        {
-            Expander expander = (Expander)sender;
-            ModelVertex node = (ModelVertex)expander.Content;
 
-            expander.Header = node;
-        }
     }
 }
