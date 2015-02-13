@@ -102,7 +102,7 @@ namespace Infer.IDE
             refreshThreadObject = new RefreshThread(WriteBox, ReadBox, Cover, Charts, ProgressBar, StatusString, viewModel, fsiSession);
 
             var textchanges = Observable.FromEventPattern<EventHandler, EventArgs>(
-                h => WriteBox.TextChanged += h,
+                h => WriteBox.TextChanged += h, 
                 h => WriteBox.TextChanged -= h
                 ).Select(x => ((TextEditor)x.Sender).Text)
                  .Throttle(TimeSpan.FromMilliseconds(500))
