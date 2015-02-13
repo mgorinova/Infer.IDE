@@ -7,7 +7,7 @@
         xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"
         xmlns:WPFExtensions_AttachedBehaviours="clr-namespace:WPFExtensions.AttachedBehaviours;assembly=WPFExtensions"
         xmlns:Converters="clr-namespace:GraphSharp.Converters;assembly=GraphSharp.Controls"
-        Title="InferIDE" Height="500" Width="1000">
+        Title="Infer.IDE" Height="500" Width="1000">
 
     <Window.Resources>        
         <ResourceDictionary>
@@ -37,10 +37,13 @@
                         Background="Transparent"
 						BorderThickness="2.0"
 						CornerRadius="20,20,20,20" Padding="5">-->
-                    
-                    <TextBlock ToolTip="{Binding Path=Distribution, Mode=OneWay}" Text="{Binding Path=Label, Mode=OneWay}"/>
 
-                    <!--<Border.Effect>
+                <TextBlock ToolTip="{Binding Path=Distribution, Mode=OneWay}" 
+                           Text="{Binding Path=Label, Mode=OneWay}" 
+                           MouseEnter="TextBlock_MouseEnter" 
+                           MouseLeave="TextBlock_MouseLeave" />
+
+                <!--<Border.Effect>
                         <DropShadowEffect BlurRadius="2" Color="LightGray" 
                         Opacity="0.3" Direction="315"/>
                     </Border.Effect>
@@ -72,6 +75,9 @@
                         <Setter Property="CornerRadius" Value="0"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Type}" Value="IntermediateArrayVariable">
+                        <Setter Property="CornerRadius" Value="0"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Type}" Value="ObservedArrayVariable">
                         <Setter Property="CornerRadius" Value="0"/>
                     </DataTrigger>
                 </Style.Triggers>
@@ -111,6 +117,10 @@
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Type}" Value="IntermediateArrayVariable">
                         <Setter Property="BorderBrush" Value="#FFC5D4E6"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Type}" Value="ObservedArrayVariable">
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Setter Property="Background" Value="#FFACCFFA"/>
                     </DataTrigger>
                     <DataTrigger Binding="{Binding Type}" Value="IntermediateVariable">
                         <Setter Property="Foreground" Value="DarkGray"/>
@@ -282,11 +292,18 @@
                         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
                         Name="WriteBox" 
                         FontFamily="Consolas"
-                        ShowLineNumbers="True"                
-                        TextChanged="OnTextChanged" HorizontalScrollBarVisibility="Hidden" >
+                        ShowLineNumbers="True"    
+                        LineNumbersForeground="LightGray"
+                        TextChanged="OnTextChanged" HorizontalScrollBarVisibility="Hidden" 
+                        >
                     </avalonEdit:TextEditor>
-                        
-                    <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.2" ZoomBoxOpacity="0.5">-->
+
+                    <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
+                               VerticalAlignment="Stretch" 
+                               Opacity="0.5" Panel.ZIndex="-1"                           
+                               />
+
+                    <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.1">-->
                     <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
                             Graph="{Binding Graph}"
                             LayoutAlgorithmType="EfficientSugiyama"
@@ -297,11 +314,8 @@
                             AsyncCompute="True"
                             IsEnabled="{Binding GraphEnabled}"
                             OverlapRemovalAlgorithmType="FSA" />
+                    <!--</zoom:ZoomControl> -->
 
-                    <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
-                               VerticalAlignment="Stretch" 
-                               Opacity="0.5" Panel.ZIndex="-1"                           
-                               />
                     <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Height}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
 
                     <!--AsyncCompute makes relayout faster and less buggy-->
@@ -315,8 +329,6 @@
                         <ColumnDefinition Width="250"/>
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-
-                    <Button x:Name="Compile" Grid.Column="0" Width="150" HorizontalAlignment="Center" Click="Compile_Click" Content="Compile" Panel.ZIndex="-1" />
                     <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
                         <ComboBoxItem>Sprinkler</ComboBoxItem>
                         <ComboBoxItem>Distributions</ComboBoxItem>
@@ -345,9 +357,9 @@
                 </Grid>
 
                 <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True"></TextBox>
-            </Grid>            
+            </Grid>
 
-            <ScrollViewer Grid.Column="1" Grid.Row="1">
+            <ScrollViewer x:Name="Scroll"  Grid.Column="1" Grid.Row="1" >
                 <StackPanel Orientation="Vertical" x:Name="Charts"/>
             </ScrollViewer>
         </Grid>

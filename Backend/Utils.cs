@@ -25,19 +25,32 @@ namespace Backend
                                 if (n.Label.Contains("[")) type = NodeType.ArrayVariable;
                                 if (n.Label.StartsWith("v"))
                                     if (n.Label.StartsWith("vbool") ||
-                                       n.Label.StartsWith("vdouble") ||
-                                       n.Label.StartsWith("vint"))
+                                        n.Label.StartsWith("vdouble") ||
+                                        n.Label.StartsWith("vint"))
                                     {
                                         if (type == NodeType.ArrayVariable) type = NodeType.IntermediateArrayVariable;
                                         else type = NodeType.IntermediateVariable;
                                     }
                             }
                             else
+                            { 
                                 type = NodeType.ObservedVariable;
+                                if (n.Label.Contains("[")) type = NodeType.ObservedArrayVariable;
+                            }
                             break;
 
                         case "#ff000000":
-                            type = NodeType.Distribution;
+                            
+                            type = NodeType.Constant;
+
+                           /*
+                            * FIXME: some observed variables are also black (unfortunatelly)
+                            * When uncommented, the line below kinnda fixes this problem in
+                            * some cases (e.g. "BugsAndRats"), but introduces other problems
+                            * with other cases (e.g. "MixtureOfGaussians")... 
+                            */
+                            // if (n.Label.Contains("[")) type = NodeType.ObservedArrayVariable;
+
                             break;
 
                         default:
@@ -48,6 +61,8 @@ namespace Backend
 
                 case "ff000000":
                     type = NodeType.Factor;
+                    if (n.Group == "Expanded" || n.Group == "Collapsed")
+                        type = NodeType.Gate;
                     break;
                  
                 default:
@@ -66,8 +81,9 @@ namespace Backend
             foreach(ModelVertex v in enumerable)
             {
                 if (v.Type == NodeType.Variable ||
-                    v.Type == NodeType.ObservedVariable ||
                     v.Type == NodeType.ArrayVariable ||
+                    v.Type == NodeType.ObservedVariable ||
+                    v.Type == NodeType.ObservedArrayVariable ||
                     v.Type == NodeType.IntermediateVariable ||
                     v.Type == NodeType.IntermediateArrayVariable)
                     m.AddVertex(v);                   
@@ -89,6 +105,7 @@ namespace Backend
             foreach(ModelVertex v in m.Vertices)
             {
                 var S = new Stack<ModelEdge>(g.OutEdges(v));
+                var used = new HashSet<ModelVertex>();
 
                 while (S.Count > 0)
                 {
@@ -97,20 +114,24 @@ namespace Backend
                     // If current neighbour is a variable, we've reached the 
                     // desired depth and we don't need to go any further.
                     // Add the desired edge: v to curEdge.Target.
-                    if (curEdge.Target.Type == NodeType.Variable || 
-                        curEdge.Target.Type == NodeType.ObservedVariable || 
+                    if (curEdge.Target.Type == NodeType.Variable ||
                         curEdge.Target.Type == NodeType.ArrayVariable ||
+                        curEdge.Target.Type == NodeType.ObservedVariable ||
+                        curEdge.Target.Type == NodeType.ObservedArrayVariable ||
                         curEdge.Target.Type == NodeType.IntermediateVariable ||
-                        curEdge.Target.Type == NodeType.IntermediateArrayVariable) 
-                        
-                        m.AddEdge(new ModelEdge(v, curEdge.Target));
-                        
-
+                        curEdge.Target.Type == NodeType.IntermediateArrayVariable)
+                    {
+                        if (!used.Contains(curEdge.Target))
+                        {
+                            m.AddEdge(new ModelEdge(v, curEdge.Target));
+                            used.Add(curEdge.Target);
+                        }
+                    }
                     else
                     {
                         var tmp = g.OutEdges(curEdge.Target);
                         foreach (var tv in tmp)
-                            S.Push(tv);                        
+                            S.Push(tv);
                     }                    
                 }
             }

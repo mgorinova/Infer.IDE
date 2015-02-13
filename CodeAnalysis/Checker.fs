@@ -27,7 +27,8 @@ let check location input =
         parseAndCheckSingleFile(input)
 
     if checkProjectResults.Errors.Length = 0 then 
-        printfn "No Errors"     
+        //printfn "No Errors"     
+        ()
     else 
         failwith (checkProjectResults.Errors.[0].ToString())
 

@@ -32,6 +32,7 @@ using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Document;
 using Microsoft.Win32;
 using Backend;
+using System.Windows.Media.Animation;
 
 
 namespace Infer.IDE
@@ -98,7 +99,7 @@ namespace Infer.IDE
             //int offset = WriteBox.Document.GetOffset(new TextLocation(3, 20));
             //textMarkerService.Create(offset, 20, "much wow");
 
-            refreshThreadObject = new RefreshThread(WriteBox, ReadBox, Cover, Charts, ProgressBar, viewModel, fsiSession);
+            refreshThreadObject = new RefreshThread(WriteBox, ReadBox, Cover, Charts, ProgressBar, StatusString, viewModel, fsiSession);
 
             var textchanges = Observable.FromEventPattern<EventHandler, EventArgs>(
                 h => WriteBox.TextChanged += h,
@@ -248,6 +249,71 @@ namespace Infer.IDE
             
         }
 
+        private void TextBlock_MouseEnter(object sender, MouseEventArgs e)
+        {
+            /*
+            TextBlock block = (TextBlock)sender;
+            ModelVertex vertex = (ModelVertex) block.DataContext;
 
+            if (vertex.WinHost != null)
+            {
+                scrollSmoothly((int)Scroll.VerticalOffset ,vertex.HostID*150);  
+              
+/*              DoubleAnimation verticalAnimation = new DoubleAnimation();
+
+                verticalAnimation.From = Scroll.VerticalOffset;
+                verticalAnimation.To = vertex.HostID*150;
+                verticalAnimation.Duration = new Duration(new TimeSpan(0,0,1));
+
+                Storyboard storyboard = new Storyboard();
+
+                storyboard.Children.Add(verticalAnimation);
+                Storyboard.SetTarget(verticalAnimation, Scroll);
+                //Storyboard.SetTargetProperty(verticalAnimation, new PropertyPath(ScrollAnimationBehavior.VerticalOffsetProperty)); // Attached dependency property
+                storyboard.Begin();*/
+
+            //}
+
+            //vertex.WinHost.Opacity = 0.0;
+                        
+            //vertex.WinHost.Margin = new Thickness(5);
+
+
+        }
+
+        private void scrollSmoothly(int from, int to)
+        {
+            if (to >= from)
+            {
+                for (int i = from; i < to; i += 10)
+                {
+                    if(i>Scroll.ScrollableHeight) break;
+                    Console.Write("scrolling");                                                                                                                                                                                                                                                                                             
+                    Scroll.ScrollToVerticalOffset((double)(i));
+                    //Thread.Sleep(200);
+                }
+            }
+            else
+            {
+                for (int i = from; i > to; i -= 10)
+                {
+                    Scroll.ScrollToVerticalOffset((double)(i));
+                    //Thread.Sleep(200);
+                }
+            }
+        }
+
+        private void TextBlock_MouseLeave(object sender, MouseEventArgs e)
+        {
+           /* TextBlock block = (TextBlock)sender;
+            ModelVertex vertex = (ModelVertex)block.DataContext;
+
+            if (vertex.WinHost != null)
+            {
+                vertex.WinHost.Visibility = Visibility.Visible;
+            }*/
+            //vertex.WinHost.Opacity = 100.0;
+            //vertex.WinHost.Margin = new Thickness(0);
+        }
     }
 }

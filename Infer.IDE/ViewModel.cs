@@ -87,7 +87,8 @@ namespace Infer.IDE
             {
                 // Means the variable has been observed.
                 // TODO: implement some kind of handling... 
-                throw new Exception("something went wrong... observed var???");
+                //throw new Exception("something went wrong... observed var???");
+                return;
             }
         }
 

@@ -11,11 +11,13 @@ namespace Backend
         Variable = 0,
         ArrayVariable = 1,
         IntermediateVariable = 2,
-        ObservedVariable = 3,
-        IntermediateArrayVariable = 4,
-        Distribution = 5,        
-        Factor = 6,
-        Other = 7
+        IntermediateArrayVariable = 3,
+        ObservedVariable = 4,
+        ObservedArrayVariable = 5,
+        Constant = 6,        
+        Factor = 7,
+        Gate = 8,
+        Other = 9
     }
 
     
@@ -39,6 +41,9 @@ namespace Backend
         //FIXME: we don't always have NodeRadius
         [XmlAttribute("NodeRadius")]
         public string NodeRadius;
+
+        [XmlAttribute("Group")]
+        public string Group;
 
         [XmlIgnore()]
         public NodeType Type;

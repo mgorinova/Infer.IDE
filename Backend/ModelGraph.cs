@@ -22,6 +22,7 @@ namespace Backend
 
         private bool observed;
         
+        private int hostID; 
         private WindowsFormsHost winHost;
 
         public ModelVertex(int i, string l, NodeType t)
@@ -71,10 +72,11 @@ namespace Backend
         public int Id { get{ return id; } }
         public string Label { get { return label; } }
         public string ProgramLabel { get { return programLabel; } }
-        public NodeType Type { get { return type; } }
+        public NodeType Type { get { return type; } set { type = value; } }
         public WindowsFormsHost WinHost { get { return winHost; } set { winHost = value; } }
         public string Distribution { get { return distribution; } set { distribution = value; } }
         public bool Observed { get { return observed; } set { observed = value; } }
+        public int HostID { get { return hostID; } set { hostID = value; } }
     }
     
 

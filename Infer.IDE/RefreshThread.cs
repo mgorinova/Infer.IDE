@@ -19,6 +19,8 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media.Animation;
 using ICSharpCode.AvalonEdit;
 using Backend;
+using System.Diagnostics;
+using System.Windows.Media;
 
 
 namespace Infer.IDE
@@ -34,7 +36,11 @@ namespace Infer.IDE
         private Rectangle cover;
         private StackPanel charts;
         private ProgressBar progress;
+        private TextBlock status;
         private ViewModel vModel;
+
+        private Stopwatch watch = new Stopwatch();
+        private Stopwatch total = new Stopwatch();
 
         private readonly Object lockCode = new Object();
 
@@ -43,7 +49,8 @@ namespace Infer.IDE
         //private string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
 
         public RefreshThread(TextEditor writeBox, TextBox readBox, Rectangle workingCover,
-                             StackPanel chartsPanel, ProgressBar progressBar, ViewModel viewModel, Shell.FsiEvaluationSession fsiEvaluationSession)
+                             StackPanel chartsPanel, ProgressBar progressBar, TextBlock statusString, 
+                             ViewModel viewModel, Shell.FsiEvaluationSession fsiEvaluationSession)
         {
             id = 0;
             wBox = writeBox;
@@ -51,6 +58,7 @@ namespace Infer.IDE
             cover = workingCover;
             charts = chartsPanel;
             progress = progressBar;
+            status = statusString;
             vModel = viewModel;
             fsiSession = fsiEvaluationSession;
         }
@@ -58,6 +66,8 @@ namespace Infer.IDE
         {
             //Shell.FsiEvaluationSessionHostConfig fsiConfig = Shell.FsiEvaluationSession.GetDefaultConfiguration();
             //fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.Some(true));
+
+            
 
             Console.WriteLine("1");
             var pth = @"D:/tmp.fsx";
@@ -79,9 +89,11 @@ namespace Infer.IDE
         }
 
         public void run()
-        {            
+        {
+            total.Restart();
             Monitor.Enter(lockCode);
             Console.WriteLine("Thread {0} started.", id);
+            watch.Restart();
             // TODO: implement text highlighting, etc
 
             DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
@@ -98,7 +110,7 @@ namespace Infer.IDE
 
             FSharpList<string> activeVars = null;
 
-            Console.Write("checking code...");
+            Console.Write("\n checking code...");
             try
             {
                 /*
@@ -106,9 +118,10 @@ namespace Infer.IDE
                  * Get a list of Infer.NET variables.
                  * If the code fails to check - an exception is thrown
                  */
+                updateStatusMessage(1);
 
                 activeVars = Checker.check(path, current);
-                Console.WriteLine(" OK \n");
+                Console.WriteLine(" OK, {0} \n", watch.ElapsedMilliseconds);
             }
             catch (Exception err)
             {
@@ -118,6 +131,9 @@ namespace Infer.IDE
                        rBox.Text += err.Message;
                    }));
                 dRBox.Completed += dRBox_Completed;
+
+                updateStatusMessage(-1);
+                removeCover();
 
                 int offset = 2;
                 int length = 10;
@@ -140,12 +156,9 @@ namespace Infer.IDE
                 Monitor.Enter(this);
                 Console.WriteLine("Thread {0} now executing.", id);
 
-                DispatcherOperation dCov = cover.Dispatcher.BeginInvoke(
-                    new Action(delegate()
-                    {
-                        cover.Visibility = Visibility.Visible;
-                    }));
+                setCover();
 
+                updateStatusMessage(2);
                 updateProgressBar(20);
  
                 //foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
@@ -156,11 +169,13 @@ namespace Infer.IDE
                      *  F# code evaluation:
                      */
 
+                    watch.Restart();
                     // FIXME: Maybe extract the text of the last namespace
                     // defined, to show in the "Read Box" of the IDE.  
                     Console.Write("script evaluation...");
                     fsiSession.EvalScript(path);
-                    Console.WriteLine(" OK \n");
+
+                    Console.WriteLine(" OK {0}\n", watch.ElapsedMilliseconds);
 
                     updateProgressBar(20);
 
@@ -174,6 +189,10 @@ namespace Infer.IDE
                     // open module (that might be unsafe...?) -- should be fine,
                     // as we are checking the code before compilation - i.e.
                     // it makes sense on its own.
+
+                    Console.Write("preparetion...");
+                    watch.Restart();
+
                     fsiSession.EvalInteraction("open Tmp");
 
                     string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
@@ -199,12 +218,15 @@ namespace Infer.IDE
 
                     dCharts.Completed += dCharts_Completed;
 
+                    updateStatusMessage(3);
                     updateProgressBar(25);
+
+                    Console.WriteLine("OK {0} \n", watch.ElapsedMilliseconds);
 
                     foreach (string varName in activeVars)
                     {
-                        Console.WriteLine("processing var {0}", varName);
-
+                        Console.Write("processing var {0}... ", varName);
+                        watch.Restart();
                         /*
                         string eName = "tempName" + r.Next();
                         fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");    // create infering engine
@@ -239,29 +261,36 @@ namespace Infer.IDE
 
                             if (varNode == null)
                             {
-                                // Update the graph accordingly and get set of connected vertices as a result                            
-                                var connectedComponent = vModel.Update(pathToDGML + "\\Model.dgml");
+                                // Update the graph accordingly and get set of connected vertices as a result
 
-                                // Change the path where the next dgml file i saved, to maximise performance,
-                                // by allowing a new dgml file to be created while another one is being read
-                                // (the creation of the dgml file happens in a separate process - fsi.exe).
-                                // Currently, "path not found" exception might occur if a new dgml file is not 
-                                // produced on the next iteration, but we are infering a variable name, which 
-                                // name is not in the added to the model graph ones - i.e. if the variable is observed..............
+                                // List<string> connectedComponent = new List<string>();
+                                try
+                                {
+                                    var connectedComponent = vModel.Update(pathToDGML + "\\Model.dgml");
 
-                                pathToDGML += "\\t";
-                                pathToSave = pathToSave.Remove(pathToSave.Length - 1) + "\\\\t\"";
-                                fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
+                                    // Change the path where the next dgml file is saved, to maximise performance,
+                                    // by allowing a new dgml file to be created while another one is being read
+                                    // (the creation of the dgml file happens in a separate process - fsi.exe).
+                                    // Currently, "path not found" exception might occur if a new dgml file is not 
+                                    // produced on the next iteration, but we are infering a variable name, which 
+                                    // name is not in the added to the model graph ones - i.e. if the variable is observed..............
 
-                                added.UnionWith(connectedComponent);
+                                    pathToDGML += "\\t";
+                                    pathToSave = pathToSave.Remove(pathToSave.Length - 1) + "\\\\t\"";
+                                    fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
 
-                                varNode = vModel.findNodeByName(varName);
+                                    added.UnionWith(connectedComponent);
+
+                                    varNode = vModel.findNodeByName(varName);
+                                }
+                                catch (DirectoryNotFoundException) { updateReadBox(varName + " is an observed variable"); }
 
                             }
 
                             vModel.UpdateDistribution(varNode, distribution);
+                            drawDistribution(varNode, distribution);                            
 
-                            drawDistribution(varNode, distribution);
+                            Console.WriteLine("OK {0}", watch.ElapsedMilliseconds);
                             // TODO: change that to "createXAMLChild" or something. Assosiate the
                             // element with the coressponding node in the ModelGraph, so a 
                             // "node expansion" visualisation can be implemented on a later stage.
@@ -269,21 +298,20 @@ namespace Infer.IDE
                         }
                         else Console.WriteLine("Error evaluating expression");
                     }
-
+                    
                     updateProgressBar(25);
-
-
+                    
                 }
                 catch (ThreadAbortException)
                 {
                     Monitor.Exit(this);
-                    Console.WriteLine("Thread {0} ABORTED.", id);
+                    Console.WriteLine("\n Thread {0} ABORTED.", id);
                     return;
                 }
                 catch (OperationCanceledException)
                 {
                     Monitor.Exit(this);
-                    Console.WriteLine("Thread {0} ABORTED.", id);
+                    Console.WriteLine("\n Thread {0} ABORTED.", id);
                     return;
                 }
                 catch (Exception err)
@@ -307,17 +335,15 @@ namespace Infer.IDE
                 //@"c:\temp\MyTest.txt"
                 //string pathhh = @"d:\here.dgml\Model.dgml";
                 vModel.ReLayoutGraph();
-
+                
                 //foreach (Backend.ModelVertex v in viewModel.Graph.Vertices)
                 //Console.WriteLine("Vertex {0} with distribution {1}", v.Label, v.Distribution);
 
-                dCov = cover.Dispatcher.BeginInvoke(
-                    new Action(delegate()
-                    {
-                        cover.Visibility = Visibility.Hidden;
-                    }));
+                removeCover();
 
-                Console.WriteLine("Re-layout finished");
+                Console.WriteLine("\n Re-layout finished, total time: {0}", total.Elapsed);
+
+                updateStatusMessage(0);
                 updateProgressBar(0);
 
                 try
@@ -326,7 +352,7 @@ namespace Infer.IDE
                 }
                 catch (DirectoryNotFoundException) { }
 
-                Console.WriteLine("Thread {0} finished execution.", id);
+                Console.WriteLine("\n Thread {0} finished execution.", id);
                 Console.WriteLine("\n****************************************************************\n");
                 Monitor.Exit(this);
             }
@@ -337,6 +363,42 @@ namespace Infer.IDE
                 Console.WriteLine("\n****************************************************************\n");
                 return;
             }
+        }
+
+        private void updateReadBox(string p)
+        {
+            DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
+                new Action(delegate()
+                {
+                    rBox.Text += p + "\n";
+                }));
+        }
+
+        private void updateStatusMessage(int phase)
+        {
+            DispatcherOperation dStat = status.Dispatcher.BeginInvoke(
+            new Action(delegate()
+            {
+                switch (phase)
+                {
+                    case 0: status.Text = "";
+                        break;
+
+                    case 1: 
+                        if(status.Text == "") status.Text = "Checking...";
+                        break;
+
+                    case 2: status.Text = "Compiling...";
+                        break;
+
+                    case 3: status.Text = "Inferring...";
+                        break;
+
+                    case -1: status.Text = "Could not compile.";
+                        break;
+                }
+
+            }));
         }
 
         void dCharts_Completed(object sender, EventArgs e)
@@ -351,19 +413,34 @@ namespace Infer.IDE
 
         private void drawDistribution(ModelVertex varNode, string distribution)
         {
+            if(varNode == null) return;
+
             DispatcherOperation dCharts = charts.Dispatcher.BeginInvoke(
                 new Action(delegate()
                 {
+                    var border = new Border();
+                    border.Background = Brushes.Red;
+                    border.BorderThickness = new Thickness(5);
+
                     var wfh = new WindowsFormsHost();
                     wfh.Height = 150.0;
 
-                    varNode.WinHost = wfh;
-                    
-                    charts.Children.Add(wfh);
-                    Distributions.draw(wfh, distribution, varNode.Label);
-                }));
+                    varNode.WinHost = wfh;                    
 
-            dCharts.Completed += dCharts_Completed;
+                    Distributions.draw(wfh, distribution, varNode.Label);
+
+                    if (wfh.Child != null)
+                    {
+                        //border.Child = wfh;
+                        //charts.Children.Add(border);
+                        varNode.HostID = charts.Children.Count;
+
+                        charts.Children.Add(wfh);
+                    }
+
+                    }));
+                dCharts.Completed += dCharts_Completed;
+            
         }
 
         private void updateProgressBar(int value)
@@ -387,6 +464,24 @@ namespace Infer.IDE
                          
                      }
                  }));
+        }
+
+        private void setCover()
+        {
+            DispatcherOperation dCov = cover.Dispatcher.BeginInvoke(
+            new Action(delegate()
+            {
+                cover.Visibility = Visibility.Visible;
+            }));
+        }
+
+        private void removeCover()
+        {
+            DispatcherOperation dCov = cover.Dispatcher.BeginInvoke(
+            new Action(delegate()
+            {
+                cover.Visibility = Visibility.Hidden;
+            }));
         }
  
 

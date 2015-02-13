@@ -104,39 +104,30 @@ let beta = Variable.Beta(2.0, 2.0)
             ";
 
 
-        public static string learningGaussian = @"open MicrosoftResearch.Infer
-open MicrosoftResearch.Infer.Models
-open MicrosoftResearch.Infer.Distributions
-open MicrosoftResearch.Infer.Factors
-open MicrosoftResearch.Infer.FSharp
+        public static string learningGaussian = @"
         
-let data = [|for i in [0..1] do yield Rand.Normal(0.0, 1.0)|]
+let data = [| -1.5075; 0.17948; 0.437989; 2.00663; 0.80729; |]
 
-let mean = Variable.GaussianFromMeanAndVariance(0.0, 100.0)
+
+let mean = Variable.GaussianFromMeanAndVariance(0.0, 1.0)
 let precision = Variable.GammaFromShapeAndScale(1.0, 1.0)
 
-let dataRange = Range(2)
+let dataRange = Range(5)   
 let x = Variable.Array<double>(dataRange)
 
 x.[dataRange] <- Variable.GaussianFromMeanAndPrecision(mean, precision).ForEach(dataRange)
 
-//x.ObservedValue <- data
+//x.ObservedValue <- data  
 
             ";
 
 
-        public static string twoCoins = @"open MicrosoftResearch.Infer
-open MicrosoftResearch.Infer.Models
-open MicrosoftResearch.Infer.Distributions
-open MicrosoftResearch.Infer.Factors
-open MicrosoftResearch.Infer.FSharp
+        public static string twoCoins = @"
 
 let coin1 = Variable.Bernoulli(0.5)
 let coin2 = Variable.Bernoulli(0.5)
 
 let bothHeads = coin1 &&& coin2
-
-//bothHeads.ObservedValue <- false
 
             ";
 
@@ -248,7 +239,6 @@ begin
 end
 
 ";
-
 
 
     }

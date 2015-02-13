@@ -4,9 +4,7 @@ let j = Range(len)
 let x = Variable.Array<Vector>(j)
 let w0 = VectorGaussian(Vector.Zero(3), PositiveDefiniteMatrix.Identity(3))
 let w = Variable.Random<Vector>(w0)
-let y = Variable.AssignVariableArray
-            (Variable.Array<bool>(j)) j 
-            (fun j -> Variable.IsPositive(Variable.GaussianFromMeanAndVariance(Variable.InnerProduct(w, x.[j]), noise))) 
+let y = Variable.AssignVariableArray (Variable.Array<bool>(j)) j  (fun j -> Variable.IsPositive (Variable.GaussianFromMeanAndVariance(Variable.InnerProduct(w, x.[j]), noise))) 
 
 // The data
 let incomes = [|63.0; 16.0; 28.0; 55.0; 22.0; 20.0|]
