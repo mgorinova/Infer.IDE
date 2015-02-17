@@ -161,8 +161,6 @@ namespace Infer.IDE
                 updateStatusMessage(2);
                 updateProgressBar(20);
  
-                //foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
-
                 try
                 {
                     /*  
@@ -173,7 +171,19 @@ namespace Infer.IDE
                     // FIXME: Maybe extract the text of the last namespace
                     // defined, to show in the "Read Box" of the IDE.  
                     Console.Write("script evaluation...");
+
+                    //foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
+                    System.IO.StringWriter sbUserDiagnostics = new System.IO.StringWriter();
+                    Console.SetError(sbUserDiagnostics);
+
                     fsiSession.EvalScript(path);
+
+                    DispatcherOperation dRBox1 = rBox.Dispatcher.BeginInvoke(
+                       new Action(delegate()
+                       {
+                    rBox.Text += sbUserDiagnostics.ToString();
+                       }));
+                    dRBox1.Completed += dRBox_Completed;
 
                     Console.WriteLine(" OK {0}\n", watch.ElapsedMilliseconds);
 
@@ -250,12 +260,13 @@ namespace Infer.IDE
                             var resultAsValue = (resultAsChoice as FSharpChoice<object, System.Exception>.Choice1Of2).Item;
 
                             string distribution = resultAsValue.ToString();
-                            DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
+                            
+                            /*DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
                                 new Action(delegate()
                                 {
                                     rBox.Text += varName + " = " + distribution + Environment.NewLine;
                                 }));
-                            dRBox.Completed += dRBox_Completed;
+                            dRBox.Completed += dRBox_Completed;*/
 
                             var varNode = vModel.findNodeByName(varName);
 

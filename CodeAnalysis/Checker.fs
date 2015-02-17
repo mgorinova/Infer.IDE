@@ -49,7 +49,9 @@ let check location input =
     let filterAndName decls pathToSource =
 
         let source = (input.Split([|'\n'|]))
-                   |> Array.map (fun (x:string) -> String.Concat(x, "\n"))
+                   |> Array.map (fun (x:string) -> 
+                        if(x.StartsWith("print")) then String.Format("e{0}\n", x) 
+                        else String.Concat(x, "\n"))
                    |> ref
 
         let addName (location:Range.range) name =

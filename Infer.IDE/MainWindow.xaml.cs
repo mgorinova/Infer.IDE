@@ -33,6 +33,7 @@ using ICSharpCode.AvalonEdit.Document;
 using Microsoft.Win32;
 using Backend;
 using System.Windows.Media.Animation;
+using System.Windows.Forms;
 
 
 namespace Infer.IDE
@@ -42,6 +43,7 @@ namespace Infer.IDE
     /// </summary>
     public partial class MainWindow : Window
     {
+
         private readonly RefreshThread refreshThreadObject;
         private Thread previousThread;
 
@@ -56,6 +58,9 @@ namespace Infer.IDE
         private StringWriter errStream;
 
         private readonly TextMarkerService textMarkerService;
+
+        private User user;
+        private bool visible = true;
 
         public MainWindow()
         {
@@ -93,7 +98,6 @@ namespace Infer.IDE
             #endregion
 
             Cover.Visibility = Visibility.Hidden;
-            LoadCodeBox.SelectedIndex = 0;
             WriteBox.Text = Strings.sprinkler;
 
             //int offset = WriteBox.Document.GetOffset(new TextLocation(3, 20));
@@ -108,6 +112,9 @@ namespace Infer.IDE
                  .Throttle(TimeSpan.FromMilliseconds(500))
                  .ObserveOnDispatcher()
                  .Subscribe(OnUserChange);
+
+            InitialPanel.Visibility = Visibility.Visible;
+            FurtherInfo.Content = Strings.furtherInfo;
         }
         
         private void OnUserChange(string s)
@@ -159,34 +166,6 @@ namespace Infer.IDE
             //refreshThreadObject.click();           
         }
 
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            int selection = LoadCodeBox.SelectedIndex;
-
-            switch (selection)
-            {
-                case 0:
-                    WriteBox.Text = Strings.sprinkler;
-                    break;
-                case 1:
-                    WriteBox.Text = Strings.allDistributions;
-                    break;
-                case 2:
-                    WriteBox.Text = Strings.learningGaussian;
-                    break;
-                case 3:
-                    WriteBox.Text = Strings.truncGaussian;
-                    break;
-                case 4:
-                    WriteBox.Text = Strings.twoCoins;
-                    break;
-                case 5:
-                    WriteBox.Text = Strings.mixGaussians;
-                    break;
-            }
-
-        }
-
         private void ProgressBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
 
@@ -194,7 +173,7 @@ namespace Infer.IDE
 
         private void OnTextChanged(object sender, System.EventArgs e)
         {
-            Console.WriteLine("Text Changed");
+            if (user != null) user.Keystroke();
         }
 
         private void New_Click(object sender, RoutedEventArgs e)
@@ -203,7 +182,7 @@ namespace Infer.IDE
         }
         private void Open_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFileDialog();
+            var dialog = new Microsoft.Win32.OpenFileDialog();
             dialog.FileName = "Document";
             dialog.DefaultExt = ".fsx";
             dialog.Filter = "F# Script Files (.fsx)|*.fsx";
@@ -214,7 +193,7 @@ namespace Infer.IDE
         }
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new SaveFileDialog();
+            var dialog = new Microsoft.Win32.SaveFileDialog();
             dialog.FileName = "Document";
             dialog.DefaultExt = ".fsx";
             dialog.Filter = "F# Script Files (.fsx)|*.fsx";
@@ -249,7 +228,7 @@ namespace Infer.IDE
             
         }
 
-        private void TextBlock_MouseEnter(object sender, MouseEventArgs e)
+        private void TextBlock_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             /*
             TextBlock block = (TextBlock)sender;
@@ -303,7 +282,7 @@ namespace Infer.IDE
             }
         }
 
-        private void TextBlock_MouseLeave(object sender, MouseEventArgs e)
+        private void TextBlock_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
            /* TextBlock block = (TextBlock)sender;
             ModelVertex vertex = (ModelVertex)block.DataContext;
@@ -314,6 +293,82 @@ namespace Infer.IDE
             }*/
             //vertex.WinHost.Opacity = 100.0;
             //vertex.WinHost.Margin = new Thickness(0);
+        }
+
+        private void Initial_Click(object sender, RoutedEventArgs e)
+        {
+            user = new User(uID.Text, gID.Text);
+
+            var context = user.InitialContext();
+
+            ExererciseLabel.Content = context.Label;
+            WriteBox.Text = context.Code;
+            if (context.Visualisations)
+            {
+                visible = false;
+                EnableVisualisations();
+            }
+            else DisableVisualisations();
+            
+            user.StartExercise();
+
+            InitialPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void Finish_Click(object sender, RoutedEventArgs e)
+        {
+            var context = user.FinishCurrent(WriteBox.Text);
+
+            ExererciseLabel.Content = context.Label;
+            InfoLabel.Content = Strings.InfoLabels[context.getType()];
+            WriteBox.Text = context.Code;
+            if (context.Visualisations) EnableVisualisations();
+            else DisableVisualisations();
+            if (context.FurtherInfo) FurtherInfo.Visibility = Visibility.Visible;
+            else FurtherInfo.Visibility = Visibility.Collapsed;
+
+            Charts.Visibility = Visibility.Hidden;
+            IntermediatePanel.Visibility = Visibility.Visible;
+        }
+
+        private void DisableVisualisations()
+        {
+            if (visible)
+            {
+                ChartsColumn.Width = new GridLength(0);
+                TextColumn.Width = new GridLength(this.ActualWidth);
+                GraphColumn.Width = new GridLength(0);
+                Status.Visibility = Visibility.Hidden;
+                visible = false;
+            }
+        }
+
+        private void EnableVisualisations()
+        {
+            if (!visible)
+            {
+                ChartsColumn.Width = new GridLength(190);
+                TextColumn.Width = new GridLength(400);
+                GraphColumn.Width = new GridLength(1, GridUnitType.Star);
+                Status.Visibility = Visibility.Visible;
+                visible = true;
+            }
+        }
+
+        private void Start_Click(object sender, RoutedEventArgs e)
+        {
+            user.StartExercise();
+            IntermediatePanel.Visibility = Visibility.Hidden;
+            Charts.Visibility = Visibility.Visible;
+        }
+
+        private void WriteBox_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+
+            if (e.Key.ToString() == Keys.Back.ToString() || e.Key.ToString() == Keys.Delete.ToString())
+            {
+                user.Backspace();
+            }
         }
     }
 }

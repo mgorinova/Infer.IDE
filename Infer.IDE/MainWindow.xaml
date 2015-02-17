@@ -7,9 +7,9 @@
         xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"
         xmlns:WPFExtensions_AttachedBehaviours="clr-namespace:WPFExtensions.AttachedBehaviours;assembly=WPFExtensions"
         xmlns:Converters="clr-namespace:GraphSharp.Converters;assembly=GraphSharp.Controls"
-        Title="Infer.IDE" Height="500" Width="1000">
+        Title="Infer.IDE" Height="600" Width="1100">
 
-    <Window.Resources>        
+    <Window.Resources>
         <ResourceDictionary>
             <local:FadeIn x:Key="fastFadeInTransition" />
             <local:FadeOut x:Key="fastFadeOutTransition" />
@@ -54,7 +54,7 @@
             <!--Green: FF1DBA00
                 Red: FFD01908
                 Yellow: FFD6A51C
-            -->            
+            -->
             <!--<SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />-->
             <SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="#FF418CF0" />
             <SolidColorBrush x:Key="HighlightedVertexBackgroundBrush" Color="Transparent"  />
@@ -66,10 +66,10 @@
             <SolidColorBrush x:Key="HighlightedEdgeBrush" Color="#FF418CF0" />
             <SolidColorBrush x:Key="SemiHighlightedInEdgeBrush" Color="#FFD01908" />
             <SolidColorBrush x:Key="SemiHighlightedOutEdgeBrush" Color="#FF1DBA00" />
-            
+
             <Style x:Key="Border" TargetType="{x:Type Border}">
                 <Setter Property="CornerRadius" Value="20"/>
-                
+
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding Type}" Value="ArrayVariable">
                         <Setter Property="CornerRadius" Value="0"/>
@@ -95,7 +95,7 @@
 							        Style="{StaticResource Border}"
 							        Padding="5">
                                 <ContentControl Content="{TemplateBinding Vertex}"
-                                            ContentTemplate="{StaticResource NodeTemplate}"  />                                
+                                            ContentTemplate="{StaticResource NodeTemplate}"  />
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
@@ -105,12 +105,12 @@
                 <Setter Property="WPFExtensions_AttachedBehaviours:DragBehaviour.X" Value="{Binding Path=(graphsharp:GraphCanvas.X), Mode=TwoWay, RelativeSource={RelativeSource Self}}"/>
                 <Setter Property="WPFExtensions_AttachedBehaviours:DragBehaviour.Y" Value="{Binding Path=(graphsharp:GraphCanvas.Y), Mode=TwoWay, RelativeSource={RelativeSource Self}}"/>
                 <!--Idle-->
-                <Setter Property="Background" Value="Transparent"/> 
+                <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="Black"/>
                 <Setter Property="BorderThickness" Value="3,1,3,1"/>
                 <Setter Property="Padding" Value="5"/>
                 <Setter Property="BorderBrush" Value="Transparent"/>
-                
+
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding Type}" Value="ArrayVariable">
                         <Setter Property="BorderBrush" Value="#FFAAC7EC"/>
@@ -159,7 +159,7 @@
             </Style>
 
             <Converters:EdgeRouteToPathConverter x:Key="routeToPathConverter" />
-            
+
             <!-- EDGE CONTROL -->
             <Style TargetType="{x:Type graphsharp:EdgeControl}">
                 <Setter Property="Template">
@@ -250,11 +250,28 @@
         </ResourceDictionary>
     </Window.Resources>
 
+
+
     <Grid Margin="2,2,2,2">
         <Grid.RowDefinitions>
             <RowDefinition Height="20"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <StackPanel x:Name="InitialPanel" Grid.Row="1" Background="LightGray" Panel.ZIndex="1" Visibility="Hidden" >
+            <TextBox x:Name="uID" Height="30" Width="120" Text="UserID" TextWrapping="Wrap" Margin="50,200,500,0"/>
+            <TextBox x:Name="gID" Height="30" Width="120" Text="GroupID" TextWrapping="Wrap" Margin="50,10,500,0"/>
+
+            <Button Height="30" Width="200" Margin="130,50,500,0" Click="Initial_Click" Content="Start" />
+
+        </StackPanel>
+
+        <StackPanel x:Name="IntermediatePanel" Grid.Row="1" Background="LightGray" Panel.ZIndex="1" Visibility="Hidden" >
+            <Label x:Name="ExererciseLabel" Content="Exercise 1" HorizontalAlignment="Center" FontSize="30" Margin="0,180,0,10"/>
+            <Label x:Name="InfoLabel" Content="Please read the instructions in the workbook carefully." 
+                   HorizontalAlignment="Center" Margin="0,0,0,50"/>
+            <Button Width="200" Height="39" Content="Start" FontSize="15" Click="Start_Click"/>
+        </StackPanel>
 
         <DockPanel Grid.Row="0" Panel.ZIndex="-1" >
             <Menu DockPanel.Dock="Top">
@@ -268,11 +285,11 @@
             </Menu>
             <TextBox AcceptsReturn="True" />
         </DockPanel>
-        
+
         <Grid Grid.Row= "1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="190"/>
+                <ColumnDefinition x:Name="ChartsColumn" Width="190"/>
             </Grid.ColumnDefinitions>
 
             <Grid Grid.Column="0">
@@ -284,9 +301,10 @@
 
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="400" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition x:Name="TextColumn" Width="400" />
+                        <ColumnDefinition x:Name="GraphColumn" Width="*" />
                     </Grid.ColumnDefinitions>
+
 
                     <avalonEdit:TextEditor Grid.Column="0"
                         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
@@ -294,15 +312,19 @@
                         FontFamily="Consolas"
                         ShowLineNumbers="True"    
                         LineNumbersForeground="LightGray"
-                        TextChanged="OnTextChanged" HorizontalScrollBarVisibility="Hidden" 
+                        TextChanged="OnTextChanged" 
+                        KeyUp="WriteBox_KeyUp" 
+                        HorizontalScrollBarVisibility="Hidden"  
                         >
                     </avalonEdit:TextEditor>
 
                     <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
                                VerticalAlignment="Stretch" 
-                               Opacity="0.5" Panel.ZIndex="-1"                           
+                               Opacity="0.5" Panel.ZIndex="1"                           
                                />
 
+                    <Label x:Name="FurtherInfo" Grid.Column="1" Content="Hover over nodes for marginal distributions" Margin="5" Visibility="Collapsed"/>
+                    
                     <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.1">-->
                     <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
                             Graph="{Binding Graph}"
@@ -316,7 +338,8 @@
                             OverlapRemovalAlgorithmType="FSA" />
                     <!--</zoom:ZoomControl> -->
 
-                    <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Height}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
+                    <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Heigt}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
+                    <StackPanel HorizontalAlignment="Left" Height="463" Margin="0,-23,-196,-98.4" VerticalAlignment="Top" Width="996" Grid.ColumnSpan="2"/>
 
                     <!--AsyncCompute makes relayout faster and less buggy-->
                     <!--</zoom:ZoomControl> -->
@@ -325,33 +348,29 @@
 
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="250"/>
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="302.4"/>
+                        <ColumnDefinition Width="97.6"/>
+                        <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
-                        <ComboBoxItem>Sprinkler</ComboBoxItem>
-                        <ComboBoxItem>Distributions</ComboBoxItem>
-                        <ComboBoxItem>Learning a Gaussian</ComboBoxItem>
-                        <ComboBoxItem>Truncated Gaussian</ComboBoxItem>
-                        <ComboBoxItem>Two Coins</ComboBoxItem>
-                        <ComboBoxItem>Mixture of Gaussians</ComboBoxItem>
-
-                    </ComboBox>
-                    <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0.2">
                         <StatusBarItem Width="50">
-                            <Image Name="StatusImage">                            
+                            <Image Name="StatusImage">
                             </Image>
                         </StatusBarItem>
 
                         <StatusBarItem>
                             <TextBlock Width="100" Name="StatusString"/>
                         </StatusBarItem>
-                    
+
                         <StatusBarItem HorizontalAlignment="Right" Margin="0,0,20,0">
                             <ProgressBar Name = "ProgressBar"  Value="0" Width="170" Height="16" ValueChanged="ProgressBar_ValueChanged" />
                         </StatusBarItem>
                     </StatusBar>
+                    
+                    <Button Content="Finish" Background="LightGray" Grid.Column="0"
+                            HorizontalAlignment="Left" VerticalAlignment="Top" 
+                            Width="183" Height="35" Margin="0,0,0,0"
+                            Click="Finish_Click"/>
 
 
                 </Grid>
