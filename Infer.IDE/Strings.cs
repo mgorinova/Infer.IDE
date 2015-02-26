@@ -7,11 +7,11 @@ namespace Infer.IDE
 {
     static class Strings
     {
-        public static string[] InfoLabels = {"Please read the instructions in the workbook carefully. \n When ready, press 'Start'",
+        public static string[] InfoLabels = {"Please read the instructions associated with this exercise carefully. \nWhen ready, press 'Start'",
                                       "Please press 'Start' to see example code.",
                                       ""};
 
-        public static string furtherInfo = "You can move nodes around if they overlap." + System.Environment.NewLine + "Hover over for distributions.";
+        public static string furtherInfo = "You can move nodes around if they overlap." + System.Environment.NewLine + "Hover over nodes to see distributions.";
 
 
         public static string path = System.IO.Directory.GetCurrentDirectory() + "\\tmp.fsx";

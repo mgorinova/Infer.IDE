@@ -104,6 +104,9 @@ namespace Backend
                 NodeType type = Utils.ClassifyNode(n);
 
                 ModelVertex add = new ModelVertex(id, label, type);
+                if (add.Type == NodeType.IntermediateArrayVariable || add.Type == NodeType.IntermediateVariable)
+                    add.Distribution = "intermediate variable (ignore)";
+
 
                 this.AddVertex(add);
             }

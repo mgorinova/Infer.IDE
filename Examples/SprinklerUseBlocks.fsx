@@ -1,8 +1,3 @@
-open MicrosoftResearch.Infer
-open MicrosoftResearch.Infer.Models
-open MicrosoftResearch.Infer.Distributions
-open MicrosoftResearch.Infer.Factors
-open MicrosoftResearch.Infer.FSharp
 
 let Cloudy = Variable.Bernoulli(0.5)
 

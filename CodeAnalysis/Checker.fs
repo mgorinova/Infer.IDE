@@ -45,13 +45,10 @@ let check location input =
         | _ -> failwith "unexpected"
 
 
-    // TODO: assign names to Infer.NET vars automatically (.Named("-//-")) 
     let filterAndName decls pathToSource =
 
         let source = (input.Split([|'\n'|]))
-                   |> Array.map (fun (x:string) -> 
-                        if(x.StartsWith("print")) then String.Format("e{0}\n", x) 
-                        else String.Concat(x, "\n"))
+                   |> Array.map (fun (x:string) -> x.Replace("printf","eprintf") + "\n")
                    |> ref
 
         let addName (location:Range.range) name =
@@ -64,7 +61,7 @@ let check location input =
         let rec filter decls acc =           
             match decls with 
             | [] -> acc
-            | d::ds ->
+            | d::ds ->                
                 match d with
                 | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue(symbol, args, expression) ->
 
@@ -81,6 +78,7 @@ let check location input =
                     else filter ds acc                
 
                 | FSharpImplementationFileDeclaration.InitAction(e) ->
+                    //printfn "%A" e
                     filter ds acc
                 | _ -> filter ds acc
 

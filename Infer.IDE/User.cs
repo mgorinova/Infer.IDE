@@ -33,16 +33,22 @@ namespace Infer.IDE
         {
             if (groupID.StartsWith("A"))
             {
-                for (int i = 0; i <=6; i+=2)
+                var c = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "\\Exercises\\" + 0 + ".fsx");
+                context[0] = new Context("Example " + (0), ExerciseType.Example, false, false, c);
+
+                c = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "\\Exercises\\" + 1 + ".fsx");
+                context[1] = new Context("Exercise " + 0, ExerciseType.Workbook, false, false, c);
+
+                for (int i = 2; i <=6; i+=2)
                 {
                     var code = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "\\Exercises\\" + i + ".fsx");
                     context[i] = new Context("Example " + (i/2), ExerciseType.Example, true, false, code);
                 }
 
-                var c = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "\\Exercises\\" + 2 + ".fsx");
+                c = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "\\Exercises\\" + 2 + ".fsx");
                 context[2] = new Context("Example 1", ExerciseType.Example, true, true, c);
 
-                for (int i = 1; i <= 7; i += 2)
+                for (int i = 3; i <= 7; i += 2)
                 {
                     var code = File.ReadAllText(System.IO.Directory.GetCurrentDirectory() + "\\Exercises\\" + i + ".fsx");
                     context[i] = new Context("Exercise " + (i / 2), ExerciseType.Workbook, true, false, code);

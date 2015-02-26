@@ -99,6 +99,7 @@ namespace Infer.IDE
             DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
                 new Action(delegate()
                 {
+                    rBox.Foreground = Brushes.Black;
                     rBox.Text = "";
                 }));
             dRBox.Completed += dRBox_Completed;
@@ -128,7 +129,9 @@ namespace Infer.IDE
                 dRBox = rBox.Dispatcher.BeginInvoke(
                    new Action(delegate()
                    {
-                       rBox.Text += err.Message;
+                       rBox.Foreground = Brushes.Red;
+                       var message = correctLineNumbers(err.Message.Substring(72));
+                       rBox.Text += message;
                    }));
                 dRBox.Completed += dRBox_Completed;
 
@@ -149,6 +152,20 @@ namespace Infer.IDE
             
         }
 
+        private string correctLineNumbers(string message)
+        {
+            //example:
+            // (30,14)-(30,16) typecheck error The value or constructor 'ar' is not defined
+
+            var split = message.Split(new Char[] { '(', ',', ')', '-', '(', ',', ')', ' ' }, 5, StringSplitOptions.RemoveEmptyEntries);
+
+            int line1 = Int32.Parse(split[0]) - 9;
+
+            var ret = String.Format("Line {0}: {1}", line1, split[4]);
+
+            return ret;
+        }
+
         private void execute(FSharpList<string> activeVars)
         {
             try
@@ -159,7 +176,7 @@ namespace Infer.IDE
                 setCover();
 
                 updateStatusMessage(2);
-                updateProgressBar(20);
+                updateProgressBar(35);
  
                 try
                 {
@@ -187,7 +204,7 @@ namespace Infer.IDE
 
                     Console.WriteLine(" OK {0}\n", watch.ElapsedMilliseconds);
 
-                    updateProgressBar(20);
+                    updateProgressBar(35);
 
                     /* 
                      * Injection: 
@@ -229,7 +246,7 @@ namespace Infer.IDE
                     dCharts.Completed += dCharts_Completed;
 
                     updateStatusMessage(3);
-                    updateProgressBar(25);
+                    updateProgressBar(35);
 
                     Console.WriteLine("OK {0} \n", watch.ElapsedMilliseconds);
 
@@ -260,13 +277,6 @@ namespace Infer.IDE
                             var resultAsValue = (resultAsChoice as FSharpChoice<object, System.Exception>.Choice1Of2).Item;
 
                             string distribution = resultAsValue.ToString();
-                            
-                            /*DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
-                                new Action(delegate()
-                                {
-                                    rBox.Text += varName + " = " + distribution + Environment.NewLine;
-                                }));
-                            dRBox.Completed += dRBox_Completed;*/
 
                             var varNode = vModel.findNodeByName(varName);
 
@@ -294,7 +304,10 @@ namespace Infer.IDE
 
                                     varNode = vModel.findNodeByName(varName);
                                 }
-                                catch (DirectoryNotFoundException) { updateReadBox(varName + " is an observed variable"); }
+                                catch (DirectoryNotFoundException) 
+                                { 
+                                    //updateReadBox(varName + " is an observed variable"); 
+                                }
 
                             }
 
@@ -310,7 +323,7 @@ namespace Infer.IDE
                         else Console.WriteLine("Error evaluating expression");
                     }
                     
-                    updateProgressBar(25);
+                    updateProgressBar(35);
                     
                 }
                 catch (ThreadAbortException)
@@ -330,10 +343,11 @@ namespace Infer.IDE
                     DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
                         new Action(delegate()
                         {
+                            rBox.Foreground = Brushes.Red;
                             rBox.Text = err.Message;
                             rBox.Text += "\n";
                             if(err.InnerException != null) 
-                                rBox.Text += err.InnerException.Message;
+                                rBox.Text += "   " + err.InnerException.Message;
                         }));
 
                     Console.WriteLine(err.Message + "\n");

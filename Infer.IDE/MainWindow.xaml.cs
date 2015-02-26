@@ -336,7 +336,7 @@ namespace Infer.IDE
             if (visible)
             {
                 ChartsColumn.Width = new GridLength(0);
-                TextColumn.Width = new GridLength(this.ActualWidth);
+                TextColumn.Width = new GridLength(this.ActualWidth - 23);
                 GraphColumn.Width = new GridLength(0);
                 Status.Visibility = Visibility.Hidden;
                 visible = false;
@@ -348,7 +348,7 @@ namespace Infer.IDE
             if (!visible)
             {
                 ChartsColumn.Width = new GridLength(190);
-                TextColumn.Width = new GridLength(400);
+                TextColumn.Width = new GridLength(500);
                 GraphColumn.Width = new GridLength(1, GridUnitType.Star);
                 Status.Visibility = Visibility.Visible;
                 visible = true;

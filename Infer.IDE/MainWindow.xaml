@@ -7,7 +7,7 @@
         xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"
         xmlns:WPFExtensions_AttachedBehaviours="clr-namespace:WPFExtensions.AttachedBehaviours;assembly=WPFExtensions"
         xmlns:Converters="clr-namespace:GraphSharp.Converters;assembly=GraphSharp.Controls"
-        Title="Infer.IDE" Height="600" Width="1100">
+        Title="Infer.IDE" Height="600" Width="1100" WindowState="Maximized">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -59,9 +59,9 @@
             <SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="#FF418CF0" />
             <SolidColorBrush x:Key="HighlightedVertexBackgroundBrush" Color="Transparent"  />
             <SolidColorBrush x:Key="HighlightedVertexForegroundBrush" Color="Black"/>
-            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBorderBrush" Color="#FFD01908" />
+            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBorderBrush" Color="Transparent" />
             <SolidColorBrush x:Key="SemiHighlightedSourceVertexBackgroundBrush" Color="Transparent" />
-            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBorderBrush" Color="#FF1DBA00" />
+            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBorderBrush" Color="Transparent" />
             <SolidColorBrush x:Key="SemiHighlightedTargetVertexBackgroundBrush" Color="Transparent" />
             <SolidColorBrush x:Key="HighlightedEdgeBrush" Color="#FF418CF0" />
             <SolidColorBrush x:Key="SemiHighlightedInEdgeBrush" Color="#FFD01908" />
@@ -259,7 +259,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel x:Name="InitialPanel" Grid.Row="1" Background="LightGray" Panel.ZIndex="1" Visibility="Hidden" >
-            <TextBox x:Name="uID" Height="30" Width="120" Text="UserID" TextWrapping="Wrap" Margin="50,200,500,0"/>
+            <TextBox x:Name="uID" Height="30" Width="120" Text="UserID" TextWrapping="Wrap" Margin="50,280,500,0"/>
             <TextBox x:Name="gID" Height="30" Width="120" Text="GroupID" TextWrapping="Wrap" Margin="50,10,500,0"/>
 
             <Button Height="30" Width="200" Margin="130,50,500,0" Click="Initial_Click" Content="Start" />
@@ -267,7 +267,7 @@
         </StackPanel>
 
         <StackPanel x:Name="IntermediatePanel" Grid.Row="1" Background="LightGray" Panel.ZIndex="1" Visibility="Hidden" >
-            <Label x:Name="ExererciseLabel" Content="Exercise 1" HorizontalAlignment="Center" FontSize="30" Margin="0,180,0,10"/>
+            <Label x:Name="ExererciseLabel" Content="Exercise 1" HorizontalAlignment="Center" FontSize="30" Margin="0,280,0,10"/>
             <Label x:Name="InfoLabel" Content="Please read the instructions in the workbook carefully." 
                    HorizontalAlignment="Center" Margin="0,0,0,50"/>
             <Button Width="200" Height="39" Content="Start" FontSize="15" Click="Start_Click"/>
@@ -296,12 +296,12 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Name="VisRow" Height="*" />
                     <RowDefinition Height="35"/>
-                    <RowDefinition Height="70"/>
+                    <RowDefinition Height="95"/>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition x:Name="TextColumn" Width="400" />
+                        <ColumnDefinition x:Name="TextColumn" Width="500" />
                         <ColumnDefinition x:Name="GraphColumn" Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -309,12 +309,13 @@
                     <avalonEdit:TextEditor Grid.Column="0"
                         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
                         Name="WriteBox" 
-                        FontFamily="Consolas"
+                        FontFamily="Consolas" FontSize="14"
                         ShowLineNumbers="True"    
                         LineNumbersForeground="LightGray"
                         TextChanged="OnTextChanged" 
                         KeyUp="WriteBox_KeyUp" 
                         HorizontalScrollBarVisibility="Hidden"  
+                        VerticalScrollBarVisibility="Visible"
                         >
                     </avalonEdit:TextEditor>
 
@@ -323,8 +324,10 @@
                                Opacity="0.5" Panel.ZIndex="1"                           
                                />
 
-                    <Label x:Name="FurtherInfo" Grid.Column="1" Content="Hover over nodes for marginal distributions" Margin="5" Visibility="Collapsed"/>
-                    
+                    <Label x:Name="FurtherInfo" Grid.Column="1" FontSize="14" 
+                           Content="Hover over nodes for marginal distributions" 
+                           Margin="5" Visibility="Collapsed"/>
+
                     <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.1">-->
                     <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
                             Graph="{Binding Graph}"
@@ -346,36 +349,36 @@
 
                 </Grid>
 
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="1" Background="#FFF1EDED">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="302.4"/>
-                        <ColumnDefinition Width="97.6"/>
-                        <ColumnDefinition />
+                        <ColumnDefinition Width="500"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,0.2">
-                        <StatusBarItem Width="50">
-                            <Image Name="StatusImage">
-                            </Image>
-                        </StatusBarItem>
+                    
+                    <StatusBar Name="Status" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                               Background="#FFF1EDED" Grid.Column="1">
 
-                        <StatusBarItem>
+                        <StatusBarItem Margin="60,0,0,0">
                             <TextBlock Width="100" Name="StatusString"/>
                         </StatusBarItem>
 
-                        <StatusBarItem HorizontalAlignment="Right" Margin="0,0,20,0">
-                            <ProgressBar Name = "ProgressBar"  Value="0" Width="170" Height="16" ValueChanged="ProgressBar_ValueChanged" />
+                        <StatusBarItem HorizontalAlignment="Right" Margin="0,0,20,0" Width="230">
+                            <ProgressBar Name = "ProgressBar" Value="0" Width="200" Height="16"   
+                                         HorizontalAlignment="Right" Margin="15,0,0,0"
+                                         Background="#FFF1EDED" BorderBrush="Transparent"
+                                         ValueChanged="ProgressBar_ValueChanged" />
                         </StatusBarItem>
                     </StatusBar>
-                    
+
                     <Button Content="Finish" Background="LightGray" Grid.Column="0"
-                            HorizontalAlignment="Left" VerticalAlignment="Top" 
-                            Width="183" Height="35" Margin="0,0,0,0"
+                            HorizontalAlignment="Center" VerticalAlignment="Center" 
+                            Width="183" Height="30"
                             Click="Finish_Click"/>
 
 
                 </Grid>
 
-                <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True"></TextBox>
+                <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True" TextWrapping="Wrap" FontSize="14"/>
             </Grid>
 
             <ScrollViewer x:Name="Scroll"  Grid.Column="1" Grid.Row="1" >
