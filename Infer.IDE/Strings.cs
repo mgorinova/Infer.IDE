@@ -40,12 +40,7 @@ namespace Infer.IDE
                                 "open MicrosoftResearch.Infer.Maths" + Environment.NewLine;
 
 
-        public static string sprinkler = @"open MicrosoftResearch.Infer
-open MicrosoftResearch.Infer.Models
-open MicrosoftResearch.Infer.Distributions
-open MicrosoftResearch.Infer.Factors
-open MicrosoftResearch.Infer.FSharp
-
+        public static string sprinkler = @"
 let Cloudy = Variable.Bernoulli(0.5)
 
 let Sprinkler = Variable.New<bool>()
@@ -81,7 +76,7 @@ Wet.SetTo(Variable.Bernoulli(0.0))
 ifr4.CloseBlock()
 ifs2.CloseBlock()    
 
-//Sprinkler.ObservedValue <- true
+
             ";
 
 
@@ -109,13 +104,14 @@ let beta = Variable.Beta(2.0, 2.0)
 let data = [| -1.5075; 0.17948; 0.437989; 2.00663; 0.80729; |]
 
 
-let mean = Variable.GaussianFromMeanAndVariance(0.0, 1.0)
-let precision = Variable.GammaFromShapeAndScale(1.0, 1.0)
+let m = Variable.GaussianFromMeanAndVariance(0.0, 1.0)
+let v = Variable.GammaFromShapeAndScale(1.0, 1.0)
 
 let dataRange = Range(5)   
 let x = Variable.Array<double>(dataRange)
 
-x.[dataRange] <- Variable.GaussianFromMeanAndPrecision(mean, precision).ForEach(dataRange)
+x.[dataRange] <- Variable.GaussianFromMeanAndVariance(m, v).ForEach(dataRange)
+
 
 //x.ObservedValue <- data  
 

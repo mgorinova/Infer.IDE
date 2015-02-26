@@ -292,6 +292,7 @@
                         xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
                         Name="WriteBox" 
                         FontFamily="Consolas"
+                        FontSize="18"
                         ShowLineNumbers="True"    
                         LineNumbersForeground="LightGray"
                         TextChanged="OnTextChanged" HorizontalScrollBarVisibility="Hidden" 
@@ -303,7 +304,7 @@
                                Opacity="0.5" Panel.ZIndex="-1"                           
                                />
 
-                    <!--<zoom:ZoomControl Grid.Column="1" Zoom="0.1">-->
+                    <zoom:ZoomControl Grid.Column="1" Zoom="0.1">
                     <local:ModelGraphLayout Grid.Column ="1" x:Name="graphLayout" Margin="10"
                             Graph="{Binding Graph}"
                             LayoutAlgorithmType="EfficientSugiyama"
@@ -314,7 +315,7 @@
                             AsyncCompute="True"
                             IsEnabled="{Binding GraphEnabled}"
                             OverlapRemovalAlgorithmType="FSA" />
-                    <!--</zoom:ZoomControl> -->
+                    </zoom:ZoomControl>
 
                     <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Height}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
 
@@ -356,7 +357,7 @@
 
                 </Grid>
 
-                <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True"></TextBox>
+                <TextBox x:Name="ReadBox" Grid.Row="2" IsReadOnly="True" FontSize="16"></TextBox>
             </Grid>
 
             <ScrollViewer x:Name="Scroll"  Grid.Column="1" Grid.Row="1" >
