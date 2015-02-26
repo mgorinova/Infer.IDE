@@ -49,7 +49,7 @@ namespace Infer.IDE
         //private string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
 
         public RefreshThread(TextEditor writeBox, TextBox readBox, Rectangle workingCover,
-                             StackPanel chartsPanel, ProgressBar progressBar, TextBlock statusString, 
+                             StackPanel chartsPanel, ProgressBar progressBar, TextBlock statusString,
                              ViewModel viewModel, Shell.FsiEvaluationSession fsiEvaluationSession)
         {
             id = 0;
@@ -67,7 +67,7 @@ namespace Infer.IDE
             //Shell.FsiEvaluationSessionHostConfig fsiConfig = Shell.FsiEvaluationSession.GetDefaultConfiguration();
             //fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.Some(true));
 
-            
+
 
             Console.WriteLine("1");
             var pth = @"D:/tmp.fsx";
@@ -99,6 +99,7 @@ namespace Infer.IDE
             DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
                 new Action(delegate()
                 {
+                    rBox.Foreground = Brushes.Black;
                     rBox.Text = "";
                 }));
             dRBox.Completed += dRBox_Completed;
@@ -128,7 +129,9 @@ namespace Infer.IDE
                 dRBox = rBox.Dispatcher.BeginInvoke(
                    new Action(delegate()
                    {
-                       rBox.Text += err.Message;
+                       rBox.Foreground = Brushes.Red;
+                       var message = correctLineNumbers(err.Message.Substring(72));
+                       rBox.Text += message;
                    }));
                 dRBox.Completed += dRBox_Completed;
 
@@ -146,7 +149,21 @@ namespace Infer.IDE
             Monitor.Exit(lockCode);
             if (activeVars == null) return;
             else execute(activeVars);
-            
+
+        }
+
+        private string correctLineNumbers(string message)
+        {
+            //example:
+            // (30,14)-(30,16) typecheck error The value or constructor 'ar' is not defined
+
+            var split = message.Split(new Char[] { '(', ',', ')', '-', '(', ',', ')', ' ' }, 5, StringSplitOptions.RemoveEmptyEntries);
+
+            int line1 = Int32.Parse(split[0]) - 9;
+
+            var ret = String.Format("Line {0}: {1}", line1, split[4]);
+
+            return ret;
         }
 
         private void execute(FSharpList<string> activeVars)
@@ -159,9 +176,7 @@ namespace Infer.IDE
                 setCover();
 
                 updateStatusMessage(2);
-                updateProgressBar(20);
- 
-                //foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
+                updateProgressBar(35);
 
                 try
                 {
@@ -173,11 +188,23 @@ namespace Infer.IDE
                     // FIXME: Maybe extract the text of the last namespace
                     // defined, to show in the "Read Box" of the IDE.  
                     Console.Write("script evaluation...");
+
+                    //foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
+                    System.IO.StringWriter sbUserDiagnostics = new System.IO.StringWriter();
+                    Console.SetError(sbUserDiagnostics);
+
                     fsiSession.EvalScript(path);
+
+                    DispatcherOperation dRBox1 = rBox.Dispatcher.BeginInvoke(
+                       new Action(delegate()
+                       {
+                           rBox.Text += sbUserDiagnostics.ToString();
+                       }));
+                    dRBox1.Completed += dRBox_Completed;
 
                     Console.WriteLine(" OK {0}\n", watch.ElapsedMilliseconds);
 
-                    updateProgressBar(20);
+                    updateProgressBar(35);
 
                     /* 
                      * Injection: 
@@ -219,7 +246,7 @@ namespace Infer.IDE
                     dCharts.Completed += dCharts_Completed;
 
                     updateStatusMessage(3);
-                    updateProgressBar(25);
+                    updateProgressBar(35);
 
                     Console.WriteLine("OK {0} \n", watch.ElapsedMilliseconds);
 
@@ -250,12 +277,6 @@ namespace Infer.IDE
                             var resultAsValue = (resultAsChoice as FSharpChoice<object, System.Exception>.Choice1Of2).Item;
 
                             string distribution = resultAsValue.ToString();
-                            DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
-                                new Action(delegate()
-                                {
-                                    rBox.Text += varName + " = " + distribution + Environment.NewLine;
-                                }));
-                            dRBox.Completed += dRBox_Completed;
 
                             var varNode = vModel.findNodeByName(varName);
 
@@ -283,12 +304,15 @@ namespace Infer.IDE
 
                                     varNode = vModel.findNodeByName(varName);
                                 }
-                                catch (DirectoryNotFoundException) { updateReadBox(varName + " is an observed variable"); }
+                                catch (DirectoryNotFoundException)
+                                {
+                                    //updateReadBox(varName + " is an observed variable"); 
+                                }
 
                             }
 
                             vModel.UpdateDistribution(varNode, distribution);
-                            drawDistribution(varNode, distribution);                            
+                            drawDistribution(varNode, distribution);
 
                             Console.WriteLine("OK {0}", watch.ElapsedMilliseconds);
                             // TODO: change that to "createXAMLChild" or something. Assosiate the
@@ -298,9 +322,9 @@ namespace Infer.IDE
                         }
                         else Console.WriteLine("Error evaluating expression");
                     }
-                    
-                    updateProgressBar(25);
-                    
+
+                    updateProgressBar(35);
+
                 }
                 catch (ThreadAbortException)
                 {
@@ -319,10 +343,11 @@ namespace Infer.IDE
                     DispatcherOperation dRBox = rBox.Dispatcher.BeginInvoke(
                         new Action(delegate()
                         {
+                            rBox.Foreground = Brushes.Red;
                             rBox.Text = err.Message;
                             rBox.Text += "\n";
-                            if(err.InnerException != null) 
-                                rBox.Text += err.InnerException.Message;
+                            if (err.InnerException != null)
+                                rBox.Text += "   " + err.InnerException.Message;
                         }));
 
                     Console.WriteLine(err.Message + "\n");
@@ -335,7 +360,7 @@ namespace Infer.IDE
                 //@"c:\temp\MyTest.txt"
                 //string pathhh = @"d:\here.dgml\Model.dgml";
                 vModel.ReLayoutGraph();
-                
+
                 //foreach (Backend.ModelVertex v in viewModel.Graph.Vertices)
                 //Console.WriteLine("Vertex {0} with distribution {1}", v.Label, v.Distribution);
 
@@ -384,8 +409,8 @@ namespace Infer.IDE
                     case 0: status.Text = "";
                         break;
 
-                    case 1: 
-                        if(status.Text == "") status.Text = "Checking...";
+                    case 1:
+                        if (status.Text == "") status.Text = "Checking...";
                         break;
 
                     case 2: status.Text = "Compiling...";
@@ -413,7 +438,7 @@ namespace Infer.IDE
 
         private void drawDistribution(ModelVertex varNode, string distribution)
         {
-            if(varNode == null) return;
+            if (varNode == null) return;
 
             DispatcherOperation dCharts = charts.Dispatcher.BeginInvoke(
                 new Action(delegate()
@@ -425,7 +450,7 @@ namespace Infer.IDE
                     var wfh = new WindowsFormsHost();
                     wfh.Height = 150.0;
 
-                    varNode.WinHost = wfh;                    
+                    varNode.WinHost = wfh;
 
                     Distributions.draw(wfh, distribution, varNode.Label);
 
@@ -438,14 +463,14 @@ namespace Infer.IDE
                         charts.Children.Add(wfh);
                     }
 
-                    }));
-                dCharts.Completed += dCharts_Completed;
-            
+                }));
+            dCharts.Completed += dCharts_Completed;
+
         }
 
         private void updateProgressBar(int value)
         {
-            
+
             DispatcherOperation dProg = progress.Dispatcher.BeginInvoke(
                  new Action(delegate()
                  {
@@ -459,9 +484,9 @@ namespace Infer.IDE
                      else
                      {
                          Duration duration = new Duration(TimeSpan.FromSeconds(0.2));
-                         DoubleAnimation da = new DoubleAnimation(progress.Value, progress.Value+value, duration);
+                         DoubleAnimation da = new DoubleAnimation(progress.Value, progress.Value + value, duration);
                          progress.BeginAnimation(ProgressBar.ValueProperty, da);
-                         
+
                      }
                  }));
         }
@@ -483,7 +508,7 @@ namespace Infer.IDE
                 cover.Visibility = Visibility.Hidden;
             }));
         }
- 
+
 
     }
 }
