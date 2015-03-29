@@ -113,7 +113,8 @@ let x = Variable.Array<double>(dataRange)
 x.[dataRange] <- Variable.GaussianFromMeanAndVariance(m, v).ForEach(dataRange)
 
 
-//x.ObservedValue <- data  
+//x.ObservedValue <- data 
+m.ObservedValue <- 0.3 
 
             ";
 

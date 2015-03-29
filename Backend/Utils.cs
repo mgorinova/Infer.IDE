@@ -33,8 +33,14 @@ namespace Backend
                                     }
                             }
                             else
-                            { 
+                            {
                                 type = NodeType.ObservedVariable;
+                                if (n.Label.Contains("="))
+                                {
+                                    type = NodeType.ObservedVariable;
+                                    n.Label = n.Label.Split('=')[0].TrimEnd(' ');
+                                    Console.WriteLine("Observed {0}", n.Label);
+                                }
                                 if (n.Label.Contains("[")) type = NodeType.ObservedArrayVariable;
                             }
                             break;

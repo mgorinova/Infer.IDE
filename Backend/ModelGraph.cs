@@ -62,10 +62,12 @@ namespace Backend
             // Take a look on the "Mixture of Gaussians" example - 
             // we have several "array" nodes, all with the same "programLabel" 
 
-            string[] splitArr = new string[] { @"[" };
-            var sub = l.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+            var ifObs = l.Split('=')[0].TrimEnd(' ');
 
-            if (sub.Length > 1) Console.WriteLine("Split in {0} and {1}", sub[0], sub[1]);
+            string[] splitArr = new string[] { @"[" };
+            var sub = ifObs.Split(splitArr, StringSplitOptions.RemoveEmptyEntries);
+
+            //if (sub.Length > 1) Console.WriteLine("Split in {0} and {1}", sub[0], sub[1]);
             return sub[0];
         }
 
@@ -99,9 +101,9 @@ namespace Backend
         {
             foreach (Node n in g.Nodes)
             {
-                int id = ParseID(n.Id);
-                string label = n.Label;
+                int id = ParseID(n.Id);                
                 NodeType type = Utils.ClassifyNode(n);
+                string label = n.Label;
 
                 ModelVertex add = new ModelVertex(id, label, type);
 
@@ -150,6 +152,7 @@ namespace Backend
         {
             foreach (ModelVertex v in this.Vertices)
             {
+                if (v.Label == name) return v;
                 if (v.ProgramLabel == name) return v;
             }
 
@@ -162,12 +165,32 @@ namespace Backend
         {
             foreach (ModelVertex v in g.Vertices)
             {
-                this.AddVertex(v);
+                var v1 = this.FindVertexByName(v.Label);
+               // if (v1 != null) v1 = v; // could potentially break... however, I think the only way this situation could happen  
+                                        // is when we've started searching the dgml file from an observed variable, in which case
+                                        // there won't be any edges going out of it.
+                if(v1==null) this.AddVertex(v);
             }
 
             foreach (ModelEdge e in g.Edges)
             {
-                this.AddEdge(e);
+                try { this.AddEdge(e); }
+                catch (KeyNotFoundException)
+                {
+                    var source = this.FindVertexByName(e.Source.Label);
+                    var target = this.FindVertexByName(e.Target.Label);
+
+                    if (source != null && target != null)
+                    {
+                       this.AddEdge(new ModelEdge(source, target));
+                    }
+                    else
+                    { 
+                        throw new KeyNotFoundException();
+                    }
+
+                }
+                
             }
         }
     }
