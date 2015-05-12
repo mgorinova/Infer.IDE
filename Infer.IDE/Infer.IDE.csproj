@@ -113,10 +113,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="LineColorizer.cs" />
     <Compile Include="RecourceLoader.cs" />
     <Compile Include="Strings.cs" />
     <Compile Include="RefreshThread.cs" />
-    <Compile Include="TextMarkerService.cs" />
     <Compile Include="ViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

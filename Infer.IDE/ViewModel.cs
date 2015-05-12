@@ -76,21 +76,6 @@ namespace Infer.IDE
             }
         }
 
-        internal void UpdateDistribution(ModelVertex varNode, string distribution)
-        {          
-            if (varNode != null)
-            {
-                varNode.Distribution = distribution;
-                varNode.Observed = false;
-            }
-            else
-            {
-                // Means the variable has been observed.
-                // TODO: implement some kind of handling... 
-                //throw new Exception("something went wrong... observed var???");
-                return;
-            }
-        }
 
         internal void Reset()
         {

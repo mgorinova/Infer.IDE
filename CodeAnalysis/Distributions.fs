@@ -24,6 +24,30 @@ let dirichlet arr x =
     let v:Vector = Vector.FromArray(arr)
     Dirichlet.FromMeanLog(v).GetLogProb x |> Operators.exp
 
+let checkIfMeIdiot (distribution:Object) =
+    
+    let t = distribution.GetType()
+
+    let downcastt (t : Object) =
+        match t with
+        | :? MicrosoftResearch.Infer.Distributions.Gaussian as dist1 -> 
+            printfn "Idiot! %A" (dist1.GetLogProb(1.0))
+        | :? MicrosoftResearch.Infer.Distributions.Bernoulli as dist1 -> 
+        printfn "Idiot! %A" (dist1.GetLogProb(true))
+        | _ -> printfn "Not an Idiot!"
+
+    downcastt t
+    (*
+    let d =
+        try 
+            distribution :?> t
+        with
+            | :? Exception -> printfn "You are NOT an idiot!!!"; null
+    
+    printfn "%A" d
+    *)
+    ()
+
 let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) = 
 
     //let chart = Chart.Line [ for i in 0 .. 10 -> (i,i*i) ]

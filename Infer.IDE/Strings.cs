@@ -53,7 +53,7 @@ ifc.CloseBlock()
     
 let els = Variable.IfNot(Cloudy)
 Sprinkler.SetTo(Variable.Bernoulli(0.5))
-Rain.SetTo(Variable.Bernoulli(0.2))
+Rain.SetTo(Variable.Bernoulli(0.1))
 els.CloseBlock()
 
 let Wet = Variable.New<bool>()

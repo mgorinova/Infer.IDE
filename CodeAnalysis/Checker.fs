@@ -7,6 +7,9 @@ open Microsoft.FSharp.Compiler
 open System.IO
 open System
 
+type RandomVariable(n:string, l:int) =
+    member this.name = n
+    member this.line = l
 
 let check location input =
     
@@ -70,7 +73,7 @@ let check location input =
                     if(t.StartsWith("type MicrosoftResearch.Infer.Models.Variable")) then 
                         let innerType = t.Substring(44)
                         addName (expression.Range) (symbol.CompiledName) 
-                        filter ds ((symbol.CompiledName, "Variable", innerType)::acc)
+                        filter ds ((symbol.CompiledName, expression.Range.StartLine - 9)::acc)
                     elif(t.StartsWith("type MicrosoftResearch.Infer.Models.Range")) then 
                         addName (expression.Range) (symbol.CompiledName)
                         filter ds acc
@@ -89,6 +92,6 @@ let check location input =
 
     let vars = filterAndName declarations location
 
-    let activeVars = List.map (fun (name, _, _) -> name)  vars
+    let activeVars = List.map (fun (name, location) -> RandomVariable(name, location))  vars
                   |> List.rev  
     activeVars

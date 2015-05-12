@@ -9,8 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace Backend
-{
-        
+{        
     public class ModelVertex
     {
         private int id;
@@ -19,6 +18,7 @@ namespace Backend
         private NodeType type;
 
         private string distribution;
+        private int location;
 
         private bool observed;
         
@@ -79,6 +79,7 @@ namespace Backend
         public string Distribution { get { return distribution; } set { distribution = value; } }
         public bool Observed { get { return observed; } set { observed = value; } }
         public int HostID { get { return hostID; } set { hostID = value; } }
+        public int Location { get { return location; } set { location = value; } }
     }
     
 

@@ -42,7 +42,10 @@ namespace Infer.IDE
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static Thread currentExecutingThread;
+
         private readonly RefreshThread refreshThreadObject;
+        private readonly Object lockRefreshThread = new Object();
         private Thread previousThread;
 
         private ViewModel viewModel;
@@ -55,7 +58,9 @@ namespace Infer.IDE
         private StringWriter outStream;
         private StringWriter errStream;
 
-        private readonly TextMarkerService textMarkerService;
+        private LineColorizer highlighted;
+
+        //private readonly TextMarkerService textMarkerService;
 
         public MainWindow()
         {
@@ -77,6 +82,8 @@ namespace Infer.IDE
             foreach(string a in Strings.assemblies)                
                 fsiSession.EvalInteraction(a);
 
+            fsiSession.EvalInteraction("let ie" + " = new InferenceEngine()");
+
             InitializeComponent();
 
             #region Initialise TextEditor details
@@ -85,11 +92,11 @@ namespace Infer.IDE
             WriteBox.Options = Options;
             WriteBox.SyntaxHighlighting = ResourceLoader.LoadHighlightingDefinition("FSharp.xshd");
 
-            textMarkerService = new TextMarkerService(WriteBox);
+            //textMarkerService = new TextMarkerService(WriteBox);
             TextView textView = WriteBox.TextArea.TextView;
-            textView.BackgroundRenderers.Add(textMarkerService);
-            textView.LineTransformers.Add(textMarkerService);
-            textView.Services.AddService(typeof(TextMarkerService), textMarkerService);
+            //textView.BackgroundRenderers.Add(textMarkerService);
+            //textView.LineTransformers.Add(textMarkerService);
+            //textView.Services.AddService(typeof(TextMarkerService), textMarkerService);
             #endregion
 
             Cover.Visibility = Visibility.Hidden;
@@ -107,18 +114,15 @@ namespace Infer.IDE
                 ).Select(x => ((TextEditor)x.Sender).Text)
                  .Throttle(TimeSpan.FromMilliseconds(500))
                  .ObserveOnDispatcher()
-                 .Subscribe(OnUserChange);
+                 .Subscribe(Recompile);
         }
         
-        private void OnUserChange(string s)
+        private void Recompile(string s)
         {
-            if (refreshThreadObject == null) return;
-
-            if (!Monitor.TryEnter(refreshThreadObject))
+            lock(lockRefreshThread)
             {
-                previousThread.Abort();
 
-                Monitor.Enter(refreshThreadObject);
+                if (refreshThreadObject == null) return;
 
                 refreshThreadObject.CodeString = WriteBox.Text;
                 refreshThreadObject.Id++;
@@ -129,35 +133,13 @@ namespace Infer.IDE
                 previousThread.SetApartmentState(ApartmentState.STA);
 
                 previousThread.Start();
-
-                Monitor.Exit(refreshThreadObject);
             }
-            else
-            {
-                refreshThreadObject.CodeString = WriteBox.Text;
-                refreshThreadObject.Id++;
-
-                previousThread = new Thread(new ThreadStart(refreshThreadObject.run));
-                // The calling thread must be STA(Single-Threaded Apartment), 
-                // because many UI components require this.
-                previousThread.SetApartmentState(ApartmentState.STA);
-
-                previousThread.Start();
-                Monitor.Exit(refreshThreadObject);
-            }                    
-
         }
 
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            Console.WriteLine("Text changed");
-        }
-
-        private void Compile_Click(object sender, RoutedEventArgs e)
+        /*private void Compile_Click(object sender, RoutedEventArgs e)
         {
             OnUserChange(""); 
-            //refreshThreadObject.click();           
-        }
+        }*/
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -187,14 +169,11 @@ namespace Infer.IDE
 
         }
 
-        private void ProgressBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-
-        }
+        private void ProgressBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e){}
 
         private void OnTextChanged(object sender, System.EventArgs e)
         {
-            Console.WriteLine("Text Changed");
+            //Console.WriteLine("Text Changed");
         }
 
         private void New_Click(object sender, RoutedEventArgs e)
@@ -251,10 +230,18 @@ namespace Infer.IDE
 
         private void TextBlock_MouseEnter(object sender, MouseEventArgs e)
         {
-            /*
             TextBlock block = (TextBlock)sender;
             ModelVertex vertex = (ModelVertex) block.DataContext;
 
+            Console.WriteLine("Defined on line {0}", vertex.Location);
+
+            try
+            {
+                highlighted = new LineColorizer(vertex.Location);
+                WriteBox.TextArea.TextView.LineTransformers.Add(highlighted);
+            }
+            catch (ArgumentOutOfRangeException) { Console.WriteLine("temp var not declared in the code"); }
+            /*
             if (vertex.WinHost != null)
             {
                 scrollSmoothly((int)Scroll.VerticalOffset ,vertex.HostID*150);  
@@ -305,6 +292,8 @@ namespace Infer.IDE
 
         private void TextBlock_MouseLeave(object sender, MouseEventArgs e)
         {
+            WriteBox.TextArea.TextView.LineTransformers.Remove(highlighted);
+
            /* TextBlock block = (TextBlock)sender;
             ModelVertex vertex = (ModelVertex)block.DataContext;
 

@@ -43,11 +43,11 @@ namespace Infer.IDE
         private Stopwatch total = new Stopwatch();
 
         private readonly Object lockCode = new Object();
+        private readonly Object lockExecution = new Object();
 
         public string CodeString { get { return code; } set { code = value; } }
         public int Id { get { return id; } set { id = value; } }
-        //private string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
-
+        
         public RefreshThread(TextEditor writeBox, TextBox readBox, Rectangle workingCover,
                              StackPanel chartsPanel, ProgressBar progressBar, TextBlock statusString,
                              ViewModel viewModel, Shell.FsiEvaluationSession fsiEvaluationSession)
@@ -62,36 +62,11 @@ namespace Infer.IDE
             vModel = viewModel;
             fsiSession = fsiEvaluationSession;
         }
-        public void click()
-        {
-            //Shell.FsiEvaluationSessionHostConfig fsiConfig = Shell.FsiEvaluationSession.GetDefaultConfiguration();
-            //fsiSession = Shell.FsiEvaluationSession.Create(fsiConfig, txt, inStream, outStream, errStream, FSharpOption<bool>.Some(true));
-
-
-
-            Console.WriteLine("1");
-            var pth = @"D:/tmp.fsx";
-            //File.WriteAllText(pth, WriteBox.Text);
-            Console.WriteLine("2");
-            try
-            {
-                Console.WriteLine("3");
-                fsiSession.EvalScript(pth);
-                Console.WriteLine("4");
-
-                fsiSession.EvalInteraction("open Tmp");
-                fsiSession.EvalInteraction("let ie = new InferenceEngine()");
-                fsiSession.EvalInteraction("printfn \"%A\" (ie.Infer(means))");
-
-            }
-            catch (Exception err) { Console.WriteLine("EXCEPTION! " + err.Message + "\n" + err.InnerException.Message); }
-            Console.WriteLine("5");
-        }
 
         public void run()
         {
-            total.Restart();
             Monitor.Enter(lockCode);
+            total.Restart();
             Console.WriteLine("Thread {0} started.", id);
             watch.Restart();
             // TODO: implement text highlighting, etc
@@ -104,12 +79,11 @@ namespace Infer.IDE
                 }));
             dRBox.Completed += dRBox_Completed;
 
+            FSharpList<Checker.RandomVariable> activeVars = null;
 
             string current = Strings.allAssemblies + code;
 
             File.WriteAllText(path, current);
-
-            FSharpList<string> activeVars = null;
 
             Console.Write("\n checking code...");
             try
@@ -122,6 +96,7 @@ namespace Infer.IDE
                 updateStatusMessage(1);
 
                 activeVars = Checker.check(path, current);
+
                 Console.WriteLine(" OK, {0} \n", watch.ElapsedMilliseconds);
             }
             catch (Exception err)
@@ -146,17 +121,25 @@ namespace Infer.IDE
                 return;
             }
 
-            Monitor.Exit(lockCode);
-            if (activeVars == null) return;
-            else execute(activeVars);
+            if (activeVars == null) { Monitor.Exit(lockCode); return; } // this happens only when checking does not complete. Otherwise, the list is empty or not, but it exists!
+            else
+            {
+                if (!Monitor.TryEnter(lockExecution))
+                {
+                    MainWindow.currentExecutingThread.Abort();
+                    Monitor.Enter(lockExecution);
+                }
+
+                MainWindow.currentExecutingThread = Thread.CurrentThread;  
+              
+                Monitor.Exit(lockCode);
+                execute(activeVars);
+            }
 
         }
 
         private string correctLineNumbers(string message)
         {
-            //example:
-            // (30,14)-(30,16) typecheck error The value or constructor 'ar' is not defined
-
             var split = message.Split(new Char[] { '(', ',', ')', '-', '(', ',', ')', ' ' }, 5, StringSplitOptions.RemoveEmptyEntries);
 
             int line1 = Int32.Parse(split[0]) - 9;
@@ -166,11 +149,10 @@ namespace Infer.IDE
             return ret;
         }
 
-        private void execute(FSharpList<string> activeVars)
+        private void execute(FSharpList<Checker.RandomVariable> activeVars)
         {
             try
             {
-                Monitor.Enter(this);
                 Console.WriteLine("Thread {0} now executing.", id);
 
                 setCover();
@@ -189,7 +171,6 @@ namespace Infer.IDE
                     // defined, to show in the "Read Box" of the IDE.  
                     Console.Write("script evaluation...");
 
-                    //foreach (string v in activeVars) Console.WriteLine("{0} is an active var", v);
                     System.IO.StringWriter sbUserDiagnostics = new System.IO.StringWriter();
                     Console.SetError(sbUserDiagnostics);
 
@@ -217,7 +198,7 @@ namespace Infer.IDE
                     // as we are checking the code before compilation - i.e.
                     // it makes sense on its own.
 
-                    Console.Write("preparetion...");
+                    Console.Write("preparation...");
                     watch.Restart();
 
                     fsiSession.EvalInteraction("open Tmp");
@@ -226,13 +207,12 @@ namespace Infer.IDE
                     string pathToDGML = System.IO.Directory.GetCurrentDirectory(); //+ "\\Model.dgml";
 
                     Random r = new Random();
-
-                    ///*
-                    string eName = "tempName" + r.Next();
-                    fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");    // create infering engine
+                                   
+                    string eName = "ie";
+                    //string eName = "tempName" + r.Next();
+                    //fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");    // create inference engine
                     fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
-                    //*/
-
+                    
                     HashSet<string> added = new HashSet<string>();
 
                     vModel.Reset();                                // zero the content of current model
@@ -250,8 +230,11 @@ namespace Infer.IDE
 
                     Console.WriteLine("OK {0} \n", watch.ElapsedMilliseconds);
 
-                    foreach (string varName in activeVars)
+                    foreach (Checker.RandomVariable rv in activeVars)
                     {
+                        string varName = rv.name;
+                        var location = rv.line;
+
                         Console.Write("processing var {0}... ", varName);
                         watch.Restart();
                         /*
@@ -276,6 +259,8 @@ namespace Infer.IDE
                             }
                             var resultAsValue = (resultAsChoice as FSharpChoice<object, System.Exception>.Choice1Of2).Item;
 
+                            //Distributions.checkIfMeIdiot(resultAsValue);
+
                             string distribution = resultAsValue.ToString();
 
                             var varNode = vModel.findNodeByName(varName);
@@ -287,31 +272,29 @@ namespace Infer.IDE
                                 // List<string> connectedComponent = new List<string>();
                                 try
                                 {
-                                    var connectedComponent = vModel.Update(pathToDGML + "\\Model.dgml");
+                                    var subGraph = vModel.Update(pathToDGML + "\\Model.dgml");
 
                                     // Change the path where the next dgml file is saved, to maximise performance,
                                     // by allowing a new dgml file to be created while another one is being read
                                     // (the creation of the dgml file happens in a separate process - fsi.exe).
-                                    // Currently, "path not found" exception might occur if a new dgml file is not 
-                                    // produced on the next iteration, but we are infering a variable name, which 
-                                    // name is not in the added to the model graph ones - i.e. if the variable is observed..............
 
                                     pathToDGML += "\\t";
                                     pathToSave = pathToSave.Remove(pathToSave.Length - 1) + "\\\\t\"";
                                     fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
 
-                                    added.UnionWith(connectedComponent);
+                                    added.UnionWith(subGraph);
 
                                     varNode = vModel.findNodeByName(varName);
                                 }
                                 catch (DirectoryNotFoundException)
                                 {
-                                    //updateReadBox(varName + " is an observed variable"); 
+                                    updateReadBox("Something went wrong..."); 
                                 }
 
                             }
 
-                            vModel.UpdateDistribution(varNode, distribution);
+                            varNode.Distribution = distribution;
+                            varNode.Location = rv.line;
                             drawDistribution(varNode, distribution);
 
                             Console.WriteLine("OK {0}", watch.ElapsedMilliseconds);
@@ -328,13 +311,13 @@ namespace Infer.IDE
                 }
                 catch (ThreadAbortException)
                 {
-                    Monitor.Exit(this);
+                    Monitor.Exit(lockExecution);
                     Console.WriteLine("\n Thread {0} ABORTED.", id);
                     return;
                 }
                 catch (OperationCanceledException)
                 {
-                    Monitor.Exit(this);
+                    Monitor.Exit(lockExecution);
                     Console.WriteLine("\n Thread {0} ABORTED.", id);
                     return;
                 }
@@ -357,12 +340,7 @@ namespace Infer.IDE
                     Console.WriteLine("Type of the exception: {0}", err.GetType());
                 }
 
-                //@"c:\temp\MyTest.txt"
-                //string pathhh = @"d:\here.dgml\Model.dgml";
                 vModel.ReLayoutGraph();
-
-                //foreach (Backend.ModelVertex v in viewModel.Graph.Vertices)
-                //Console.WriteLine("Vertex {0} with distribution {1}", v.Label, v.Distribution);
 
                 removeCover();
 
@@ -371,19 +349,19 @@ namespace Infer.IDE
                 updateStatusMessage(0);
                 updateProgressBar(0);
 
-                try
+               /* try
                 {
                     Directory.Delete(System.IO.Directory.GetCurrentDirectory() + "\\t", true);
                 }
-                catch (DirectoryNotFoundException) { }
+                catch (DirectoryNotFoundException) { }*/
 
                 Console.WriteLine("\n Thread {0} finished execution.", id);
                 Console.WriteLine("\n****************************************************************\n");
-                Monitor.Exit(this);
+                Monitor.Exit(lockExecution);
             }
             catch (ThreadAbortException)
             {
-                Monitor.Exit(this);
+                Monitor.Exit(lockExecution);
                 Console.WriteLine("Thread {0} ABORTED.", id);
                 Console.WriteLine("\n****************************************************************\n");
                 return;

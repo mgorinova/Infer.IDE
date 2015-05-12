@@ -105,7 +105,7 @@ namespace Backend
             var g = new ModelGraph(graph);
             var m = new ModelGraph();
 
-            filter(g.Vertices, m); //FIXME: ugly - change it to m.AddRelevantVertices(g.Vertices)
+            filter(g.Vertices, m); //FIXME: ugly - change it to m.AddRelevantVertices(g.Vertices) or something
             //var edges = new List<ModelEdge>();           
 
             foreach(ModelVertex v in m.Vertices)

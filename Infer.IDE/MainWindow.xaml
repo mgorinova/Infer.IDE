@@ -56,12 +56,12 @@
                 Yellow: FFD6A51C
             -->            
             <!--<SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />-->
-            <SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="#FF418CF0" />
+            <SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="#FF418CF0" />  <!--Color="#FF418CF0"-->
             <SolidColorBrush x:Key="HighlightedVertexBackgroundBrush" Color="Transparent"  />
             <SolidColorBrush x:Key="HighlightedVertexForegroundBrush" Color="Black"/>
-            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBorderBrush" Color="#FFD01908" />
+            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBorderBrush" Color="Transparent" />  <!--Color="#FFD01908"-->
             <SolidColorBrush x:Key="SemiHighlightedSourceVertexBackgroundBrush" Color="Transparent" />
-            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBorderBrush" Color="#FF1DBA00" />
+            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBorderBrush" Color="Transparent" />  <!--Color="#FF1DBA00"-->
             <SolidColorBrush x:Key="SemiHighlightedTargetVertexBackgroundBrush" Color="Transparent" />
             <SolidColorBrush x:Key="HighlightedEdgeBrush" Color="#FF418CF0" />
             <SolidColorBrush x:Key="SemiHighlightedInEdgeBrush" Color="#FFD01908" />
@@ -303,7 +303,7 @@
                         >
                     </avalonEdit:TextEditor>
 
-                    <Rectangle Name="Cover" Grid.Column="1" Fill="Gray" HorizontalAlignment="Stretch" 
+                    <Rectangle Name="Cover" Grid.Column="1" Fill="LightGray" HorizontalAlignment="Stretch" 
                                VerticalAlignment="Stretch" 
                                Opacity="0.5" Panel.ZIndex="-1"                           
                                />
@@ -334,7 +334,7 @@
                         <ColumnDefinition Width="250"/>
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="1" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
+                    <ComboBox Grid.Column="1" Visibility ="Hidden" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
                         <ComboBoxItem>Sprinkler</ComboBoxItem>
                         <ComboBoxItem>Distributions</ComboBoxItem>
                         <ComboBoxItem>Learning a Gaussian</ComboBoxItem>
@@ -343,6 +343,8 @@
                         <ComboBoxItem>Mixture of Gaussians</ComboBoxItem>
 
                     </ComboBox>
+                    <StatusBar Grid.Column="0"></StatusBar>
+                    <StatusBar Grid.Column="1"></StatusBar>
                     <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                         <StatusBarItem Width="50">
                             <Image Name="StatusImage">                            
