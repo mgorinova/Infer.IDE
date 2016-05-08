@@ -7,7 +7,7 @@
         xmlns:zoom="clr-namespace:WPFExtensions.Controls;assembly=WPFExtensions"
         xmlns:WPFExtensions_AttachedBehaviours="clr-namespace:WPFExtensions.AttachedBehaviours;assembly=WPFExtensions"
         xmlns:Converters="clr-namespace:GraphSharp.Converters;assembly=GraphSharp.Controls"
-        Title="Infer.IDE" Height="500" Width="1000">
+        Title="Infer.IDE" Height="675" Width="1200">
 
     <Window.Resources>        
         <ResourceDictionary>
@@ -32,36 +32,20 @@
 
 
             <DataTemplate x:Key="NodeTemplate" DataType="{x:Type graph:ModelVertex}">
-                <!--<Border x:Name="Border"
-                        BorderBrush="{Binding Path=BorderBrush, Mode=OneWay}"
-                        Background="Transparent"
-						BorderThickness="2.0"
-						CornerRadius="20,20,20,20" Padding="5">-->
 
                 <TextBlock ToolTip="{Binding Path=Distribution, Mode=OneWay}" 
                            Text="{Binding Path=Label, Mode=OneWay}" 
                            MouseEnter="TextBlock_MouseEnter" 
                            MouseLeave="TextBlock_MouseLeave" />
 
-                <!--<Border.Effect>
-                        <DropShadowEffect BlurRadius="2" Color="LightGray" 
-                        Opacity="0.3" Direction="315"/>
-                    </Border.Effect>
-
-                </Border>-->
             </DataTemplate>
 
-            <!--Green: FF1DBA00
-                Red: FFD01908
-                Yellow: FFD6A51C
-            -->            
-            <!--<SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />-->
-            <SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="#FF418CF0" />  <!--Color="#FF418CF0"-->
+            <SolidColorBrush x:Key="HighlightedVertexBorderBrush" Color="#FF418CF0" />  
             <SolidColorBrush x:Key="HighlightedVertexBackgroundBrush" Color="Transparent"  />
             <SolidColorBrush x:Key="HighlightedVertexForegroundBrush" Color="Black"/>
-            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBorderBrush" Color="Transparent" />  <!--Color="#FFD01908"-->
+            <SolidColorBrush x:Key="SemiHighlightedSourceVertexBorderBrush" Color="Transparent" />  
             <SolidColorBrush x:Key="SemiHighlightedSourceVertexBackgroundBrush" Color="Transparent" />
-            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBorderBrush" Color="Transparent" />  <!--Color="#FF1DBA00"-->
+            <SolidColorBrush x:Key="SemiHighlightedTargetVertexBorderBrush" Color="Transparent" /> 
             <SolidColorBrush x:Key="SemiHighlightedTargetVertexBackgroundBrush" Color="Transparent" />
             <SolidColorBrush x:Key="HighlightedEdgeBrush" Color="#FF418CF0" />
             <SolidColorBrush x:Key="SemiHighlightedInEdgeBrush" Color="#FFD01908" />
@@ -283,7 +267,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Name="VisRow" Height="*" />
                     <RowDefinition Height="35"/>
-                    <RowDefinition Height="70"/>
+                    <RowDefinition Height="100"/>
                 </Grid.RowDefinitions>
 
                 <Grid Grid.Row="0">
@@ -299,7 +283,7 @@
                         FontSize="12"
                         ShowLineNumbers="True"    
                         LineNumbersForeground="LightGray"
-                        TextChanged="OnTextChanged" HorizontalScrollBarVisibility="Hidden" 
+                        HorizontalScrollBarVisibility="Hidden" 
                         >
                     </avalonEdit:TextEditor>
 
@@ -319,12 +303,11 @@
                             AsyncCompute="True"
                             IsEnabled="{Binding GraphEnabled}"
                             OverlapRemovalAlgorithmType="FSA" />
+                    <!--AsyncCompute makes relayout faster and less buggy-->
+                    
                     <!--</zoom:ZoomControl>-->
 
                     <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Height="{Binding VisRow.Height}" Margin="0,0,0,-0.2" VerticalAlignment="Stretch" Width="5"/>
-
-                    <!--AsyncCompute makes relayout faster and less buggy-->
-                    <!--</zoom:ZoomControl> -->
 
                 </Grid>
 
@@ -334,15 +317,7 @@
                         <ColumnDefinition Width="250"/>
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <ComboBox Grid.Column="1" Visibility ="Hidden" Name="LoadCodeBox" HorizontalAlignment="Center" Width="200" Height ="25" SelectionChanged="ComboBox_SelectionChanged">
-                        <ComboBoxItem>Sprinkler</ComboBoxItem>
-                        <ComboBoxItem>Distributions</ComboBoxItem>
-                        <ComboBoxItem>Learning a Gaussian</ComboBoxItem>
-                        <ComboBoxItem>Truncated Gaussian</ComboBoxItem>
-                        <ComboBoxItem>Two Coins</ComboBoxItem>
-                        <ComboBoxItem>Mixture of Gaussians</ComboBoxItem>
 
-                    </ComboBox>
                     <StatusBar Grid.Column="0"></StatusBar>
                     <StatusBar Grid.Column="1"></StatusBar>
                     <StatusBar Name="Status" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -356,10 +331,9 @@
                         </StatusBarItem>
                     
                         <StatusBarItem HorizontalAlignment="Right" Margin="0,0,20,0">
-                            <ProgressBar Name = "ProgressBar"  Value="0" Width="170" Height="16" ValueChanged="ProgressBar_ValueChanged" />
+                            <ProgressBar Name = "ProgressBar"  Value="0" Width="170" Height="16" Visibility="Hidden" />
                         </StatusBarItem>
                     </StatusBar>
-
 
                 </Grid>
 

@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Threading;
 
 using System.Windows.Forms.Integration;
@@ -21,18 +12,11 @@ using Microsoft.FSharp.Compiler.Interactive;
 using Microsoft.FSharp.Compiler;
 using Microsoft.FSharp.Core;
 using Microsoft.FSharp.Collections;
-using System.Diagnostics;
 using System.Reactive.Linq;
-using System.Linq;
 using ICSharpCode.AvalonEdit;
-using ICSharpCode.AvalonEdit.Highlighting;
-using ICSharpCode.AvalonEdit.Highlighting.Xshd;
-using System.Xml;
 using ICSharpCode.AvalonEdit.Rendering;
-using ICSharpCode.AvalonEdit.Document;
 using Microsoft.Win32;
 using Backend;
-using System.Windows.Media.Animation;
 
 
 namespace Infer.IDE
@@ -49,8 +33,6 @@ namespace Infer.IDE
         private Thread previousThread;
 
         private ViewModel viewModel;
-        private int cnt = 0;
-        private string [] paths = {"TwoCoins.dgml", "Sprinkler-Mine.dgml", "Sprinkler.dgml"};
         private string path = System.IO.Directory.GetCurrentDirectory() + "\\tmp.fsx";
         private Shell.FsiEvaluationSession fsiSession;
 
@@ -59,8 +41,6 @@ namespace Infer.IDE
         private StringWriter errStream;
 
         private LineColorizer highlighted;
-
-        //private readonly TextMarkerService textMarkerService;
 
         public MainWindow()
         {
@@ -92,19 +72,11 @@ namespace Infer.IDE
             WriteBox.Options = Options;
             WriteBox.SyntaxHighlighting = ResourceLoader.LoadHighlightingDefinition("FSharp.xshd");
 
-            //textMarkerService = new TextMarkerService(WriteBox);
             TextView textView = WriteBox.TextArea.TextView;
-            //textView.BackgroundRenderers.Add(textMarkerService);
-            //textView.LineTransformers.Add(textMarkerService);
-            //textView.Services.AddService(typeof(TextMarkerService), textMarkerService);
             #endregion
 
             Cover.Visibility = Visibility.Hidden;
-            LoadCodeBox.SelectedIndex = 0;
-            WriteBox.Text = Strings.sprinkler;
-
-            //int offset = WriteBox.Document.GetOffset(new TextLocation(3, 20));
-            //textMarkerService.Create(offset, 20, "much wow");
+            WriteBox.Text = "";
 
             refreshThreadObject = new RefreshThread(WriteBox, ReadBox, Cover, Charts, ProgressBar, StatusString, viewModel, fsiSession);
 
@@ -119,6 +91,7 @@ namespace Infer.IDE
         
         private void Recompile(string s)
         {
+            ProgressBar.Visibility = Visibility.Visible;
             lock(lockRefreshThread)
             {
 
@@ -135,46 +108,7 @@ namespace Infer.IDE
                 previousThread.Start();
             }
         }
-
-        /*private void Compile_Click(object sender, RoutedEventArgs e)
-        {
-            OnUserChange(""); 
-        }*/
-
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            int selection = LoadCodeBox.SelectedIndex;
-
-            switch (selection)
-            {
-                case 0:
-                    WriteBox.Text = Strings.sprinkler;
-                    break;
-                case 1:
-                    WriteBox.Text = Strings.allDistributions;
-                    break;
-                case 2:
-                    WriteBox.Text = Strings.learningGaussian;
-                    break;
-                case 3:
-                    WriteBox.Text = Strings.truncGaussian;
-                    break;
-                case 4:
-                    WriteBox.Text = Strings.twoCoins;
-                    break;
-                case 5:
-                    WriteBox.Text = Strings.mixGaussians;
-                    break;
-            }
-
-        }
-
-        private void ProgressBar_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e){}
-
-        private void OnTextChanged(object sender, System.EventArgs e)
-        {
-            //Console.WriteLine("Text Changed");
-        }
+        
 
         private void New_Click(object sender, RoutedEventArgs e)
         {
@@ -207,27 +141,6 @@ namespace Infer.IDE
             this.Close();
         }
 
-        private void Expander_Expanded(object sender, RoutedEventArgs e)
-        {
-            Expander expander = (Expander)sender;
-            ModelVertex node = (ModelVertex)expander.Content;
-
-            Console.WriteLine("label {0}, distribution {1}", node.Label, node.Distribution);
-
-            WindowsFormsHost wfh = new WindowsFormsHost();
-            wfh.Height = 100.0;
-
-            node.WinHost = wfh;
-
-            //Charts.Children.Add(wfh);
-            Distributions.draw(wfh, node.Distribution, node.Label);
-
-            expander.Header = null;
-
-            viewModel.ReLayoutGraph();
-            
-        }
-
         private void TextBlock_MouseEnter(object sender, MouseEventArgs e)
         {
             TextBlock block = (TextBlock)sender;
@@ -241,30 +154,6 @@ namespace Infer.IDE
                 WriteBox.TextArea.TextView.LineTransformers.Add(highlighted);
             }
             catch (ArgumentOutOfRangeException) { Console.WriteLine("temp var not declared in the code"); }
-            /*
-            if (vertex.WinHost != null)
-            {
-                scrollSmoothly((int)Scroll.VerticalOffset ,vertex.HostID*150);  
-              
-/*              DoubleAnimation verticalAnimation = new DoubleAnimation();
-
-                verticalAnimation.From = Scroll.VerticalOffset;
-                verticalAnimation.To = vertex.HostID*150;
-                verticalAnimation.Duration = new Duration(new TimeSpan(0,0,1));
-
-                Storyboard storyboard = new Storyboard();
-
-                storyboard.Children.Add(verticalAnimation);
-                Storyboard.SetTarget(verticalAnimation, Scroll);
-                //Storyboard.SetTargetProperty(verticalAnimation, new PropertyPath(ScrollAnimationBehavior.VerticalOffsetProperty)); // Attached dependency property
-                storyboard.Begin();*/
-
-            //}
-
-            //vertex.WinHost.Opacity = 0.0;
-                        
-            //vertex.WinHost.Margin = new Thickness(5);
-
 
         }
 
@@ -277,7 +166,6 @@ namespace Infer.IDE
                     if(i>Scroll.ScrollableHeight) break;
                     Console.Write("scrolling");                                                                                                                                                                                                                                                                                             
                     Scroll.ScrollToVerticalOffset((double)(i));
-                    //Thread.Sleep(200);
                 }
             }
             else
@@ -285,7 +173,6 @@ namespace Infer.IDE
                 for (int i = from; i > to; i -= 10)
                 {
                     Scroll.ScrollToVerticalOffset((double)(i));
-                    //Thread.Sleep(200);
                 }
             }
         }
@@ -293,16 +180,6 @@ namespace Infer.IDE
         private void TextBlock_MouseLeave(object sender, MouseEventArgs e)
         {
             WriteBox.TextArea.TextView.LineTransformers.Remove(highlighted);
-
-           /* TextBlock block = (TextBlock)sender;
-            ModelVertex vertex = (ModelVertex)block.DataContext;
-
-            if (vertex.WinHost != null)
-            {
-                vertex.WinHost.Visibility = Visibility.Visible;
-            }*/
-            //vertex.WinHost.Opacity = 100.0;
-            //vertex.WinHost.Margin = new Thickness(0);
         }
     }
 }

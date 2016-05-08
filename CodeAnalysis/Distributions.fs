@@ -24,45 +24,16 @@ let dirichlet arr x =
     let v:Vector = Vector.FromArray(arr)
     Dirichlet.FromMeanLog(v).GetLogProb x |> Operators.exp
 
-let checkIfMeIdiot (distribution:Object) =
-    
-    let t = distribution.GetType()
-
-    let downcastt (t : Object) =
-        match t with
-        | :? MicrosoftResearch.Infer.Distributions.Gaussian as dist1 -> 
-            printfn "Idiot! %A" (dist1.GetLogProb(1.0))
-        | :? MicrosoftResearch.Infer.Distributions.Bernoulli as dist1 -> 
-        printfn "Idiot! %A" (dist1.GetLogProb(true))
-        | _ -> printfn "Not an Idiot!"
-
-    downcastt t
-    (*
-    let d =
-        try 
-            distribution :?> t
-        with
-            | :? Exception -> printfn "You are NOT an idiot!!!"; null
-    
-    printfn "%A" d
-    *)
-    ()
 
 let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) = 
-
-    //let chart = Chart.Line [ for i in 0 .. 10 -> (i,i*i) ]
-    //let chart = Chart.Spline([for i in -2.0 .. 2.0 -> gaussian 0.0 1.0 i]).WithXAxis(Min = -2.0, Max = 2.0)
-    //winForm.Child <- new ChartControl(chart)
 
     let arr = [| '('; ')' |]
 
     let distType = distribution.Split(arr)
-    //printfn "1[%s] 2[%s] 3[%s]" distType.[0] distType.[1] distType.[2]
         
     let arr = [| '('; ')' |]
 
     let distType = distribution.Split(arr)
-    //printfn "1[%s] 2[%s] 3[%s]" distType.[0] distType.[1] distType.[2]
 
     let xAxisStyle = new LabelStyle(FontSize = 8.0)
     let yAxisStyle = new LabelStyle(FontSize = 8.0)
@@ -95,15 +66,11 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
 
             getFromArray (distType.[1].Split([|','|]))
             
-        //printfn "%f, %f" mean variance
         
         let rightBound = Math.Round(mean + 2.5*sqrt(variance), 1) //mean + 2.0*variance         
         let leftBound  = Math.Round(2.0*mean - rightBound, 1)
-        let top        = 1.0
+        let top        = gaussian mean variance mean |>  fun x -> x*x  |> fun x -> x+1.0 |> Math.Round 
         let step       = if Math.Round((rightBound - leftBound)/30.0, 1) > 0.0 then Math.Round((rightBound - leftBound)/30.0, 1) else 0.01
-        //let xAxisStyle = new LabelStyle(TruncatedLabels = false, IsStaggered = true, FontSize = float 8.0f)
-
-        printfn "lb:%A, rb:%A, step:%A" leftBound rightBound step
 
         let chart = Chart.Line ([for i in leftBound .. step .. rightBound -> (i, (gaussian mean variance i))], Name = varName)
                     |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
@@ -120,15 +87,15 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
 
             getFromArray (distType.[1].Split([|','|]))
             
-        //printfn "%f, %f" shape scale
-
-        let rightBound = Math.Round(10.0*shape, 1)
+        let rightBound = 16.0
+        let topBound = shape |> Math.Log10 |> fun x -> x+1.0 |> Math.Round 
         let step = if rightBound/50.0 > 0.0 then Math.Round(rightBound/50.0, 1) else 0.01
+
 
         let chart = Chart.Line ([for i in 0.0 .. step .. rightBound -> (i, (gamma shape scale i))], Name = varName)
                     |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
                     |> Chart.WithXAxis(Min = 0.0, Max = rightBound, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid)
-                    |> Chart.WithYAxis(Min = 0.0, Max = 1.0, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)  
+                    |> Chart.WithYAxis(Min = 0.0, Max = topBound, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)  
 
         winForm.Child <- new ChartControl(chart)
 
@@ -140,7 +107,6 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
 
             getFromArray (distType.[1].Split([|','|]))
             
-        //printfn "%f, %f" trueCount falseCount
 
         let rightBound = Math.Round(2.0*trueCount, 1)
         let step = if rightBound/30.0 > 0.0 then Math.Round(rightBound/30.0, 1) else 0.05
@@ -162,8 +128,6 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
 
         winForm.Child <- new ChartControl(chart)
 
-
-
     | "Poisson" ->
         let mean = System.Convert.ToDouble distType.[1]
 
@@ -178,14 +142,6 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
     | "Dirichlet" ->
         let floatArr = distType.[1].Split(' ')
                        |> Array.map (System.Convert.ToDouble)
-
-        // as dirichlet is a multivariate distribution, i is not a float, but a vector... need to think of a clever way to visualise
-        // from different angles or something. Maybe ask Advait?
-        
-        (*let chart = Chart.Line ([for i in 0.0 .. 0.1 .. 10.0 -> (i, (dirichlet floatArr i))], Name = varName)
-                    |> Chart.WithTitle(Text = varName, InsideArea = true, Alignment = ContentAlignment.TopCenter, Docking = Docking.Top)
-                    |> Chart.WithXAxis(Min = 0.0, Max = 10.0, LabelStyle = xAxisStyle, MinorGrid = grid, MajorGrid = grid)
-                    |> Chart.WithYAxis(Min = 0.0, Max = 10.0, LabelStyle = yAxisStyle, MinorGrid = grid, MajorGrid = grid)*)
         
         winForm.Child <- null
         printfn "%A" distribution
@@ -205,7 +161,6 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
     | "WrappedGaussian" ->*)
     | _ -> 
 
-        // TODO: implement visualisation for arrays?
         if (distribution.StartsWith "[") then 
             winForm.Child <- null
             printfn "data array"
@@ -215,5 +170,3 @@ let draw (winForm : WindowsFormsHost) (distribution:string) (varName:string) =
             printfn "\n***\n%s\n***\n" distribution
             
             printfn "unexpected distributions"
-
-            //failwith "unexpected"

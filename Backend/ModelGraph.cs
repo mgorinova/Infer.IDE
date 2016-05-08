@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel;
 using System.Windows.Forms.Integration;
 using QuickGraph;
-using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace Backend
 {        
@@ -37,19 +32,6 @@ namespace Backend
         {
             get { Console.WriteLine("getting chart!"); return new WindowsFormsHost() { Child = winHost.Child }; } 
         }
-
-        /*public ModelVertex(int i, string l, NodeType t, StackPanel hostsParent)
-        {
-            id = i;
-            label = l;
-            type = t;
-
-            array = false;
-
-            winHost = new WindowsFormsHost();
-            winHost.Height = 200.0;
-            hostsParent.Children.Add(winHost);
-        }*/
 
         public override string ToString()
         {
@@ -84,13 +66,11 @@ namespace Backend
     
 
     
-    public class ModelEdge : Edge<ModelVertex>//, INotifyPropertyChanged
+    public class ModelEdge : Edge<ModelVertex>
     {
 
-        public ModelEdge(ModelVertex s, ModelVertex t)
-            : base(s, t)
-        { 
-        }
+        public ModelEdge(ModelVertex s, ModelVertex t) : base(s, t) { }
+
     }
     
 
@@ -124,7 +104,6 @@ namespace Backend
             }
            
         }
-
        
 
         #region Other Constructors
@@ -156,8 +135,6 @@ namespace Backend
                 if (v.Label == name) return v;
                 if (v.ProgramLabel == name) return v;
             }
-
-            //throw new Exception("Node with name " + name + " doesn't exist in the graph.");
             return null;
         }
 

@@ -46,17 +46,32 @@
       <HintPath>..\packages\FSharp.Compiler.Service.0.0.81\lib\net45\FSharp.Compiler.Service.dll</HintPath>
     </Reference>
     <Reference Include="Infer.Compiler">
-      <HintPath>bin\Debug\infer\Infer.Compiler.dll</HintPath>
+      <HintPath>..\packages\Infer.NET\Infer.Compiler.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Infer.Compiler" />
     <Reference Include="Infer.FSharp">
-      <HintPath>bin\Debug\infer\Infer.FSharp.dll</HintPath>
+      <HintPath>..\packages\Infer.NET\Infer.FSharp.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="Infer.FSharp" />
+    <Reference Include="Infer.Learners">
+      <HintPath>..\packages\Infer.NET\Infer.Learners.dll</HintPath>
+    </Reference>
+    <Reference Include="Infer.Learners.Classifier">
+      <HintPath>..\packages\Infer.NET\Infer.Learners.Classifier.dll</HintPath>
+    </Reference>
+    <Reference Include="Infer.Learners.Recommender">
+      <HintPath>..\packages\Infer.NET\Infer.Learners.Recommender.dll</HintPath>
+    </Reference>
+    <Reference Include="Infer.Learners.Runners">
+      <HintPath>..\packages\Infer.NET\Infer.Learners.Runners.dll</HintPath>
     </Reference>
     <Reference Include="Infer.Runtime">
-      <HintPath>bin\Debug\infer\Infer.Runtime.dll</HintPath>
+      <HintPath>..\packages\Infer.NET\Infer.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Infer.Runtime" />
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>

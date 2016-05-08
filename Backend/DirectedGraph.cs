@@ -1,23 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace Backend
 {
     public enum NodeType
     {
-        Variable = 0,
-        ArrayVariable = 1,
-        IntermediateVariable = 2,
-        IntermediateArrayVariable = 3,
-        ObservedVariable = 4,
-        ObservedArrayVariable = 5,
-        Constant = 6,        
-        Factor = 7,
-        Gate = 8,
-        Other = 9
+        Variable,
+        ArrayVariable,
+        IntermediateVariable,
+        IntermediateArrayVariable,
+        ObservedVariable,
+        ObservedArrayVariable,
+        Constant,        
+        Factor,
+        Gate,
+        Other
     }
 
     
@@ -107,8 +104,5 @@ namespace Backend
         }
 
     }
-
-
-
 
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.ComponentModel;
 using GraphSharp.Controls;
 using Backend;
@@ -10,7 +8,6 @@ using Backend;
 namespace Infer.IDE
 {
     public class ModelGraphLayout : GraphLayout<ModelVertex, ModelEdge, ModelGraph> { }
-
 
     public class ViewModel : INotifyPropertyChanged
     {
@@ -40,14 +37,10 @@ namespace Infer.IDE
             graphEnabled = false;
             NotifyPropertyChanged("GraphEnabled");
 
-            //Graph = Backend.Utils.getModel(@"d:\here.dgml\Model.dgml");
             NotifyPropertyChanged("Graph");
 
             graphEnabled = true;            
             NotifyPropertyChanged("GraphEnabled");
-
-            // FIXME (if you can...) Program crashes when you put mouse 
-            // over graph's visualisation during a refresh.
         }
 
         internal List<string> Update(string path)
@@ -91,28 +84,18 @@ namespace Infer.IDE
 
     public class FadeOut : FadeTransition
     {
-        public FadeOut()
-            : base(0.0, 0.0, 1)
-        {
-
-        }
+        public FadeOut() : base(0.0, 0.0, 1) { }
     }
 
     public class FadeIn : FadeTransition
     {
-        public FadeIn()
-            : base(0.0, 1.0, 1)
-        {
-
-        }
+        public FadeIn() : base(0.0, 1.0, 1) { }
     }
 
     public class VisabilityFadeIn
     {
-        public VisabilityFadeIn()
-        {
+        public VisabilityFadeIn() { }
 
-        }
     }   
 
 }

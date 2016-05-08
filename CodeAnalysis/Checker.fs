@@ -48,11 +48,11 @@ let check location input =
         | _ -> failwith "unexpected"
 
 
-    // TODO: assign names to Infer.NET vars automatically (.Named("-//-")) 
     let filterAndName decls pathToSource =
 
         let source = (input.Split([|'\n'|]))
-                   |> Array.map (fun (x:string) -> String.Concat(x, "\n"))
+                   |> Array.map (fun (x:string) -> String.Concat(x, "\n").Replace("eprintf", "printf"))
+                   |> Array.map (fun (x:string) -> x.Replace("printf", "eprintf"))
                    |> ref
 
         let addName (location:Range.range) name =

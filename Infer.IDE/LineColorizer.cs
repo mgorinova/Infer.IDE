@@ -1,13 +1,13 @@
 ﻿using ICSharpCode.AvalonEdit.Rendering;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 
 namespace Infer.IDE
 {
+    /// <summary>
+    /// Used for highlighting lines in the AvalonEdit editor.
+    /// Code adapted from http://community.sharpdevelop.net/.
+    /// </summary>
     class LineColorizer : DocumentColorizingTransformer
     {
         int lineNumber;
@@ -40,7 +40,6 @@ namespace Infer.IDE
 
         void ApplyChanges(VisualLineElement element)
         {
-            // apply changes here
             element.TextRunProperties.SetForegroundBrush(Brushes.White);
             element.TextRunProperties.SetBackgroundBrush((SolidColorBrush)(new BrushConverter().ConvertFrom("#418cf0")));
         }

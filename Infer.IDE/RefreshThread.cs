@@ -77,7 +77,6 @@ namespace Infer.IDE
                     rBox.Foreground = Brushes.Black;
                     rBox.Text = "";
                 }));
-            dRBox.Completed += dRBox_Completed;
 
             FSharpList<Checker.RandomVariable> activeVars = null;
 
@@ -108,13 +107,10 @@ namespace Infer.IDE
                        var message = correctLineNumbers(err.Message.Substring(72));
                        rBox.Text += message;
                    }));
-                dRBox.Completed += dRBox_Completed;
 
                 updateStatusMessage(-1);
+                updateProgressBar(0);
                 removeCover();
-
-                int offset = 2;
-                int length = 10;
 
                 Console.WriteLine("{0}", err.Message);
                 Monitor.Exit(lockCode);
@@ -181,7 +177,6 @@ namespace Infer.IDE
                        {
                            rBox.Text += sbUserDiagnostics.ToString();
                        }));
-                    dRBox1.Completed += dRBox_Completed;
 
                     Console.WriteLine(" OK {0}\n", watch.ElapsedMilliseconds);
 
@@ -194,7 +189,7 @@ namespace Infer.IDE
                      * there are more than one dgml files in that case.
                      */
 
-                    // open module (that might be unsafe...?) -- should be fine,
+                    // open module -- this should be fine,
                     // as we are checking the code before compilation - i.e.
                     // it makes sense on its own.
 
@@ -204,26 +199,25 @@ namespace Infer.IDE
                     fsiSession.EvalInteraction("open Tmp");
 
                     string pathToSave = ("\"" + System.IO.Directory.GetCurrentDirectory() + "\"").Replace("\\", "\\\\");
-                    string pathToDGML = System.IO.Directory.GetCurrentDirectory(); //+ "\\Model.dgml";
+                    string pathToDGML = System.IO.Directory.GetCurrentDirectory();
 
                     Random r = new Random();
                                    
                     string eName = "ie";
-                    //string eName = "tempName" + r.Next();
-                    //fsiSession.EvalInteraction("let " + eName + " = new InferenceEngine()");    // create inference engine
+
                     fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
                     
                     HashSet<string> added = new HashSet<string>();
 
-                    vModel.Reset();                                // zero the content of current model
+                    // zero the content of current model
+                    vModel.Reset(); 
 
                     DispatcherOperation dCharts = charts.Dispatcher.BeginInvoke(
                         new Action(delegate()
                         {
-                            charts.Children.RemoveRange(0, charts.Children.Count);      // remove previous charts
+                            // remove previous charts
+                            charts.Children.RemoveRange(0, charts.Children.Count); 
                         }));
-
-                    dCharts.Completed += dCharts_Completed;
 
                     updateStatusMessage(3);
                     updateProgressBar(35);
@@ -243,10 +237,8 @@ namespace Infer.IDE
                         fsiSession.EvalInteraction(eName + ".SaveFactorGraphToFolder <-" + pathToSave);
                         */
 
-                        //Console.Write("infering... ");
-
-                        FSharpOption<Shell.FsiValue> val = fsiSession.EvalExpression("try Choice1Of2(" + eName + ".Infer(" + varName + ")) with exn -> Choice2Of2(exn)");
-                        //Console.WriteLine(" OK\n");
+                        FSharpOption<Shell.FsiValue> val = 
+                            fsiSession.EvalExpression("try Choice1Of2(" + eName + ".Infer(" + varName + ")) with exn -> Choice2Of2(exn)");
 
                         if (FSharpOption<Shell.FsiValue>.get_IsSome(val))
                         {
@@ -259,7 +251,6 @@ namespace Infer.IDE
                             }
                             var resultAsValue = (resultAsChoice as FSharpChoice<object, System.Exception>.Choice1Of2).Item;
 
-                            //Distributions.checkIfMeIdiot(resultAsValue);
 
                             string distribution = resultAsValue.ToString();
 
@@ -269,7 +260,6 @@ namespace Infer.IDE
                             {
                                 // Update the graph accordingly and get set of connected vertices as a result
 
-                                // List<string> connectedComponent = new List<string>();
                                 try
                                 {
                                     var subGraph = vModel.Update(pathToDGML + "\\Model.dgml");
@@ -349,11 +339,6 @@ namespace Infer.IDE
                 updateStatusMessage(0);
                 updateProgressBar(0);
 
-               /* try
-                {
-                    Directory.Delete(System.IO.Directory.GetCurrentDirectory() + "\\t", true);
-                }
-                catch (DirectoryNotFoundException) { }*/
 
                 Console.WriteLine("\n Thread {0} finished execution.", id);
                 Console.WriteLine("\n****************************************************************\n");
@@ -404,16 +389,6 @@ namespace Infer.IDE
             }));
         }
 
-        void dCharts_Completed(object sender, EventArgs e)
-        {
-            //Console.WriteLine("Charts updated");
-        }
-
-        void dRBox_Completed(object sender, EventArgs e)
-        {
-            //Console.WriteLine("ReadBox updated");
-        }
-
         private void drawDistribution(ModelVertex varNode, string distribution)
         {
             if (varNode == null) return;
@@ -433,16 +408,13 @@ namespace Infer.IDE
                     Distributions.draw(wfh, distribution, varNode.Label);
 
                     if (wfh.Child != null)
-                    {
-                        //border.Child = wfh;
-                        //charts.Children.Add(border);
+                    {;
                         varNode.HostID = charts.Children.Count;
 
                         charts.Children.Add(wfh);
                     }
 
                 }));
-            dCharts.Completed += dCharts_Completed;
 
         }
 
@@ -454,10 +426,10 @@ namespace Infer.IDE
                  {
                      if (value == 0)
                      {
-                         //progress.Value = 0;
                          Duration duration = new Duration(TimeSpan.FromSeconds(0.01));
                          DoubleAnimation da = new DoubleAnimation(progress.Value, 0, duration);
                          progress.BeginAnimation(ProgressBar.ValueProperty, da);
+                         progress.Visibility = Visibility.Hidden;
                      }
                      else
                      {
