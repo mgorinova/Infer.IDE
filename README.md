@@ -2,7 +2,7 @@
 
 This IDE helps you to write, edit and understand probabilistic programs written using the <a href = "http://research.microsoft.com/en-us/um/cambridge/projects/infernet/">Infer.NET</a> framework through <a href="http://fsharp.org/">F\#</a>. It shows visualisations of the graphical models and random variable distributions, which update when a change to the source code has been made.
 
-The paper describing this work and the experiment with human participants that was conducted [1], could be find <a href='https://www.cl.cam.ac.uk/~as2006/files/gorinova_2016_probabilistic.pdf'>here</a>.
+The paper describing this work and the experiment with human participants that was conducted [1], could be found <a href='https://www.cl.cam.ac.uk/~as2006/files/gorinova_2016_probabilistic.pdf'>here</a>.
 
 To build the software, place follow the instructions below.
 
